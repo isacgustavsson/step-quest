@@ -1,12 +1,16 @@
+import { bankedStepsAtom, depositAtom } from "@/state/stepbank";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from "expo-sensors";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-const BANK_KEY = "stepBank:balance";
+export const BANK_KEY = "stepBank:balance";
 
 export default function Index() {
-  const [stepCount, setStepCount] = useState(0);
+  const [stepCount, setStepCount] = useAtom(bankedStepsAtom);
+  const depositSteps = useSetAtom(depositAtom);
+
   const [isAvailable, setIsAvailable] = useState(false);
 
   const lastStepCountReport = useRef(0);
@@ -24,13 +28,7 @@ export default function Index() {
       const delta = result.steps - lastStepCountReport.current;
       lastStepCountReport.current = result.steps;
 
-      if (delta <= 0) return;
-
-      setStepCount((prev) => {
-        const next = prev + delta;
-        AsyncStorage.setItem(BANK_KEY, String(next));
-        return next;
-      });
+      depositSteps(delta);
     });
   };
 
