@@ -1,0 +1,2 @@
+artikel om discriminated union types för referens
+https://dev.to/darkmavis1980/what-are-typescript-discriminated-unions-5hbb
