@@ -27,8 +27,7 @@ export const withdrawAtom = atom(
     if (amount > current)
       return {
         ok: false,
-        reason:
-          "you don't have enough steps in the bank to make a withdrawal..",
+        reason: "you don't have enough steps in the bank..",
       };
 
     const next = current - amount;
