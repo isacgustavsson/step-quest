@@ -9,35 +9,45 @@ export const resourcesAtom = atom<Resources>({ wood: 0, stone: 0 });
 const COST = 10;
 const GAIN = 2;
 
-export const chopWoodAtom = atom(null, (get, set): GatherResult => {
-  const result = set(withdrawAtom, COST);
+export const chopWoodAtom = atom(
+  null,
+  (get, set, times: number = 1): GatherResult => {
+    const totalCost = COST * times;
+    const result = set(withdrawAtom, totalCost);
 
-  if (!result.ok) {
-    return { ok: false, reason: result.reason };
-  }
+    if (!result.ok) {
+      return { ok: false, reason: result.reason };
+    }
 
-  const current = get(resourcesAtom);
-  const next = { ...current, wood: current.wood + GAIN };
-  set(resourcesAtom, next);
-  AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
+    const totalGain = GAIN * times;
+    const current = get(resourcesAtom);
+    const next = { ...current, wood: current.wood + totalGain };
+    set(resourcesAtom, next);
+    AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
 
-  return { ok: true, cost: COST, gain: GAIN };
-});
+    return { ok: true, cost: totalCost, gain: totalGain };
+  },
+);
 
-export const mineStoneAtom = atom(null, (get, set): GatherResult => {
-  const result = set(withdrawAtom, COST);
+export const mineStoneAtom = atom(
+  null,
+  (get, set, times: number = 1): GatherResult => {
+    const totalCost = COST * times;
+    const result = set(withdrawAtom, totalCost);
 
-  if (!result.ok) {
-    return { ok: false, reason: result.reason };
-  }
+    if (!result.ok) {
+      return { ok: false, reason: result.reason };
+    }
 
-  const current = get(resourcesAtom);
-  const next = { ...current, stone: current.stone + GAIN };
-  set(resourcesAtom, next);
-  AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
+    const totalGain = GAIN * times;
+    const current = get(resourcesAtom);
+    const next = { ...current, stone: current.stone + totalGain };
+    set(resourcesAtom, next);
+    AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
 
-  return { ok: true, cost: COST, gain: GAIN };
-});
+    return { ok: true, cost: totalCost, gain: totalGain };
+  },
+);
 
 export type GatherResult =
   | { ok: false; reason: string }
