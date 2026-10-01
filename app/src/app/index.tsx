@@ -1,22 +1,24 @@
-import { useWithdraw } from "@/hooks/useWithdraw";
+import { useResourceActions } from "@/hooks/useResourceActions";
 import { isAvailableAtom } from "@/state/pedometer";
+import { resourcesAtom } from "@/state/resources";
 import { bankedStepsAtom } from "@/state/stepbank";
 import { useAtomValue } from "jotai";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
-  const stepCount = useAtomValue(bankedStepsAtom);
+  const bank = useAtomValue(bankedStepsAtom);
+  const resource = useAtomValue(resourcesAtom);
   const isAvailable = useAtomValue(isAvailableAtom);
-  const { handleWithDraw } = useWithdraw();
+  const { handleChopWood } = useResourceActions();
 
   return (
     <View style={styles.container}>
-      <Text>{String(isAvailable)}</Text>
-      <Text>delta: {stepCount}</Text>
+      <Text>pedometer available: {String(isAvailable)}</Text>
+      <Text>stepbank: {bank}</Text>
+      <Text>wood: {resource.wood}</Text>
 
-      <Text>withdraw steps</Text>
-      <Pressable onPress={() => handleWithDraw(5)}>
-        <Text>ta ut steg</Text>
+      <Pressable onPress={() => handleChopWood()}>
+        <Text>chop wood</Text>
       </Pressable>
     </View>
   );
