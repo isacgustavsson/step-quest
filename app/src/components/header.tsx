@@ -1,6 +1,7 @@
 import { isAvailableAtom } from "@/state/pedometer";
 import { resourcesAtom } from "@/state/resources";
 import { bankedStepsAtom } from "@/state/stepbank";
+import { styles } from "@/styles/main";
 import { Image } from "expo-image";
 import { useAtomValue } from "jotai";
 import { Text, View } from "react-native";
@@ -47,8 +48,8 @@ export const HeaderComponent = () => {
           }}
         >
           <View style={{ gap: 4 }}>
-            <Text style={{ fontSize: 14, fontWeight: 500 }}>Player Name</Text>
-            <Text style={{ fontSize: 14, fontWeight: 500 }}>Level 0</Text>
+            <Text style={styles.text}>Player Name</Text>
+            <Text style={styles.text}>Level 0</Text>
 
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
@@ -57,19 +58,12 @@ export const HeaderComponent = () => {
                 source={sprites.coin}
                 style={{ width: 16, height: 16 }}
               ></Image>
-              <Text style={{ fontSize: 14, fontWeight: 500 }}>{bank}</Text>
+              <Text style={styles.text}>{bank}</Text>
             </View>
           </View>
 
           <View style={{ gap: 4 }}>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: 500,
-              }}
-            >
-              Resources
-            </Text>
+            <Text style={styles.text}>Resources</Text>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             >
@@ -77,9 +71,7 @@ export const HeaderComponent = () => {
                 source={sprites.wood}
                 style={{ width: 16, height: 16 }}
               ></Image>
-              <Text style={{ fontSize: 14, fontWeight: 500 }}>
-                {resource.wood}
-              </Text>
+              <Text style={styles.text}>{resource.wood}</Text>
             </View>
 
             <View
@@ -89,9 +81,7 @@ export const HeaderComponent = () => {
                 source={sprites.stone}
                 style={{ width: 16, height: 16 }}
               ></Image>
-              <Text style={{ fontSize: 14, fontWeight: 500 }}>
-                {resource.stone}
-              </Text>
+              <Text style={styles.text}>{resource.stone}</Text>
             </View>
           </View>
         </View>

@@ -1,3 +1,4 @@
+import { styles } from "@/styles/main";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -29,11 +30,7 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
           gap: 20,
         }}
       >
-        <Text
-          style={{ fontSize: 18, fontWeight: 500, alignSelf: "flex-start" }}
-        >
-          Actions
-        </Text>
+        <Text style={styles.text}>Gather Resources</Text>
 
         <View
           style={{
@@ -48,13 +45,7 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
               key={activity.label}
               onPress={() => setSelected(index)}
             >
-              <Text
-                style={{
-                  fontWeight: index === selected ? "bold" : "normal",
-                }}
-              >
-                {activity.label}
-              </Text>
+              <Text style={styles.text}>{activity.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -76,7 +67,9 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
               gap: 4,
             }}
           >
-            <Text style={{ paddingRight: 8 }}>select amount</Text>
+            <Text style={[styles.text, { paddingRight: 8 }]}>
+              select amount
+            </Text>
 
             <Pressable
               style={{
@@ -87,37 +80,46 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
               }}
               onPress={() => setCount((prev) => Math.max(1, prev - 1))}
             >
-              <Text style={{ fontSize: 18 }}>-</Text>
+              <Text style={styles.text}>-</Text>
             </Pressable>
 
             <Text
-              style={{
-                borderWidth: 1,
-                width: 24,
-                height: 24,
-                fontSize: 18,
-                textAlign: "center",
-              }}
+              style={[
+                styles.text,
+                {
+                  borderWidth: 1,
+                  width: 24,
+                  height: 24,
+                  textAlign: "center",
+                },
+              ]}
             >
               {count}
             </Text>
 
             <Pressable
-              style={{ borderWidth: 1, width: 24, alignItems: "center" }}
+              style={{
+                borderWidth: 1,
+                width: 24,
+                height: 24,
+                alignItems: "center",
+              }}
               onPress={() => setCount((prev) => prev + 1)}
             >
-              <Text style={{ fontSize: 18 }}>+</Text>
+              <Text style={styles.text}>+</Text>
             </Pressable>
           </View>
           <Pressable
-            style={{ borderWidth: 1 }}
+            style={{ borderWidth: 1, padding: 4 }}
             onPress={() => selectedActivity.onAction(count)}
           >
             <Text
-              style={{
-                height: 24,
-                padding: 4,
-              }}
+              style={[
+                styles.text,
+                {
+                  height: 24,
+                },
+              ]}
             >
               gather
             </Text>
