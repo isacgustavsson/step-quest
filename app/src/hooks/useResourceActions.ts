@@ -6,10 +6,7 @@ export const useResourceActions = () => {
   const chopWood = useSetAtom(chopWoodAtom);
   const mineStone = useSetAtom(mineStoneAtom);
 
-  // tar emot en funktion som argument och returnerar ett GatherResult
-  const performAction = (action: () => GatherResult) => {
-    const result = action();
-
+  const performAction = (result: GatherResult) => {
     if (!result.ok) {
       Alert.alert("could not perform action", result.reason);
       return;
@@ -22,7 +19,7 @@ export const useResourceActions = () => {
   };
 
   return {
-    handleChopWood: () => performAction(chopWood),
-    handleMineStone: () => performAction(mineStone),
+    handleChopWood: (times?: number) => performAction(chopWood(times)),
+    handleMineStone: (times?: number) => performAction(mineStone(times)),
   };
 };
