@@ -1,6 +1,7 @@
 import { ResourceActionCard } from "@/components/resourceActionCard";
 import { useResourceActions } from "@/hooks/useResourceActions";
-import { StyleSheet, View } from "react-native";
+import { styles } from "@/styles/main";
+import { View } from "react-native";
 
 export default function Home() {
   const { handleChopWood, handleMineStone } = useResourceActions();
@@ -19,11 +20,3 @@ export default function Home() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 12,
-    flex: 1,
-    alignItems: "center",
-  },
-});

@@ -25,6 +25,12 @@ const CONTROL_HEIGHT = 32;
 
 export const styles = StyleSheet.create({
   // Layout
+  container: {
+    flex: 1,
+    margin: 12,
+    alignItems: "center",
+  },
+
   card: {
     width: "100%",
     padding: 12,
@@ -33,11 +39,13 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
+
   rowBetween: {
     width: "100%",
     flexDirection: "row",
@@ -51,6 +59,13 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 24,
     color: colors.text,
+  },
+
+  textWarning: {
+    fontFamily: "monogram",
+    color: colors.accent,
+    fontSize: 14,
+    lineHeight: 14,
   },
 
   // knappar
@@ -75,5 +90,16 @@ export const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  //input
+  input: {
+    width: 200,
+    height: 40,
+    borderWidth: 1,
+    padding: 10,
+    fontFamily: "monogram",
+    color: colors.text,
+    fontSize: 18,
   },
 });
