@@ -10,9 +10,14 @@ export default function Home() {
     <View style={styles.container}>
       <ResourceActionCard
         activities={[
-          { label: "wood", onAction: handleChopWood },
+          {
+            label: "wood",
+            icon: require("@assets/icons/wood.png"),
+            onAction: handleChopWood,
+          },
           {
             label: "stone",
+            icon: require("@assets/icons/stone.png"),
             onAction: handleMineStone,
           },
         ]}

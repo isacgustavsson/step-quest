@@ -5,6 +5,7 @@ import { Tabs } from "expo-router";
 const icons = {
   home: require("@assets/icons/home.png"),
   settings: require("@assets/icons/settings.png"),
+  crafting: require("@assets/icons/anvil.png"),
 };
 
 export default function TabLayout() {
@@ -42,6 +43,19 @@ export default function TabLayout() {
             title: "Home",
             tabBarIcon: () => (
               <Image source={icons.home} style={{ width: 36, height: 36 }} />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="crafting"
+          options={{
+            title: "Crafting",
+            tabBarIcon: () => (
+              <Image
+                source={icons.crafting}
+                style={{ width: 36, height: 36 }}
+              />
             ),
           }}
         />
