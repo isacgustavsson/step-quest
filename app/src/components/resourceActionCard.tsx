@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const sprites = {
-  forest: require("@assets/images/forest.jpg"),
+  forest: require("@assets/img/forest.jpg"),
 };
 
 export type Activity = {
