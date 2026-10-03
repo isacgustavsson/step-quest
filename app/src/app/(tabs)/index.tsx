@@ -1,4 +1,3 @@
-import { HeaderComponent } from "@/components/header";
 import { ResourceActionCard } from "@/components/resourceActionCard";
 import { useResourceActions } from "@/hooks/useResourceActions";
 import { StyleSheet, View } from "react-native";
@@ -8,8 +7,6 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <HeaderComponent />
-
       <ResourceActionCard
         activities={[
           { label: "wood", onAction: handleChopWood },
