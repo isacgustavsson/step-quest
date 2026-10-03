@@ -1,6 +1,11 @@
 import { styles } from "@/styles/main";
+import { Image } from "expo-image";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+
+const sprites = {
+  forest: require("@assets/images/forest.jpg"),
+};
 
 export type Activity = {
   label: string;
@@ -18,114 +23,58 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
   const selectedActivity = activities[selected];
 
   return (
-    <>
-      <View
-        style={{
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderWidth: 1,
-          width: "100%",
-          padding: 12,
-          gap: 20,
-        }}
-      >
-        <Text style={styles.text}>Gather Resources</Text>
+    <View style={[styles.card, { alignItems: "center" }]}>
+      <Text style={styles.text}>Gather Resources</Text>
+      <View style={{ width: "100%", height: 200, overflow: "hidden" }}>
+        <Image
+          source={sprites.forest}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        ></Image>
+      </View>
 
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            gap: 12,
-          }}
-        >
-          {activities.map((activity, index) => (
-            <Pressable
-              style={{ borderWidth: 1, padding: 4 }}
-              key={activity.label}
-              onPress={() => setSelected(index)}
-            >
-              <Text style={styles.text}>{activity.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-          }}
-        >
-          <View
-            style={{
-              width: "auto",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-            }}
-          >
-            <Text style={[styles.text, { paddingRight: 8 }]}>
-              select amount
-            </Text>
-
-            <Pressable
-              style={{
-                borderWidth: 1,
-                width: 24,
-                height: 24,
-                alignItems: "center",
-              }}
-              onPress={() => setCount((prev) => Math.max(1, prev - 1))}
-            >
-              <Text style={styles.text}>-</Text>
-            </Pressable>
-
-            <Text
-              style={[
-                styles.text,
-                {
-                  borderWidth: 1,
-                  width: 24,
-                  height: 24,
-                  textAlign: "center",
-                },
-              ]}
-            >
-              {count}
-            </Text>
-
-            <Pressable
-              style={{
-                borderWidth: 1,
-                width: 24,
-                height: 24,
-                alignItems: "center",
-              }}
-              onPress={() => setCount((prev) => prev + 1)}
-            >
-              <Text style={styles.text}>+</Text>
-            </Pressable>
-          </View>
+      <View style={[styles.row, { width: "100%", gap: 12 }]}>
+        {activities.map((activity, index) => (
           <Pressable
-            style={{ borderWidth: 1, padding: 4 }}
-            onPress={() => selectedActivity.onAction(count)}
+            key={activity.label}
+            style={[styles.button, index === selected && styles.buttonSelected]}
+            onPress={() => setSelected(index)}
           >
-            <Text
-              style={[
-                styles.text,
-                {
-                  height: 24,
-                },
-              ]}
-            >
-              gather
-            </Text>
+            <Text style={styles.text}>{activity.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View style={styles.rowBetween}>
+        <View style={styles.row}>
+          <Text style={[styles.text, { marginRight: 8 }]}>amount</Text>
+
+          <Pressable
+            style={styles.square}
+            onPress={() => setCount((prev) => Math.max(1, prev - 1))}
+          >
+            <Text style={styles.text}>-</Text>
+          </Pressable>
+
+          <View style={styles.square}>
+            <Text style={styles.text}>{count}</Text>
+          </View>
+
+          <Pressable
+            style={styles.square}
+            onPress={() => setCount((prev) => prev + 1)}
+          >
+            <Text style={styles.text}>+</Text>
           </Pressable>
         </View>
+
+        <Pressable
+          style={styles.button}
+          onPress={() => selectedActivity?.onAction(count)}
+        >
+          <Text style={styles.text}>gather</Text>
+        </Pressable>
       </View>
-    </>
+    </View>
   );
 };
