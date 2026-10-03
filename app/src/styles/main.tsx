@@ -2,23 +2,23 @@ import { StyleSheet } from "react-native";
 
 export const colors = {
   // Bakgrunder
-  background: "#2c2729", // var #353033
-  card: "#40383b", // var #4b4245
-  cardBorder: "#716466", // var #7e7072
+  background: "#1c181a", // nästan svart, varm med plommonton
+  card: "#2b2528", // djup mullvadsbrun
+  cardBorder: "#544a4c", // mörkt grå-rosa trä
 
   // Text
-  text: "#f2e6d0",
-  textMuted: "#a89b94",
+  text: "#eadcc4", // pergament, något dämpad
+  textMuted: "#968a84",
 
   // Accenter
-  accent: "#e3b75a",
-  danger: "#c8574e",
-  xp: "#6eaec9",
-  success: "#7fa35e",
+  accent: "#c99e45", // mörkare, mattare guld
+  danger: "#a8463f",
+  xp: "#5590a9", // djupare dämpad blå
+  success: "#678a4a", // mörkare mossgrön
 
   // Resurser
-  wood: "#b07b52",
-  stone: "#a09c98",
+  wood: "#8f603e",
+  stone: "#827e7a",
 };
 
 const CONTROL_HEIGHT = 32;
