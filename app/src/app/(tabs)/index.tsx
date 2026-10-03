@@ -12,11 +12,13 @@ export default function Home() {
         activities={[
           {
             label: "wood",
+            image: require("@assets/img/forest.jpg"),
             icon: require("@assets/icons/wood.png"),
             onAction: handleChopWood,
           },
           {
             label: "stone",
+            image: require("@assets/img/mushrooms.jpg"),
             icon: require("@assets/icons/stone.png"),
             onAction: handleMineStone,
           },

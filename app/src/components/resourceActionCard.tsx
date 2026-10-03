@@ -3,13 +3,9 @@ import { Image, ImageSource } from "expo-image";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-const sprites = {
-  forest: require("@assets/img/forest.jpg"),
-  wood: require("@assets/icons/wood.png"),
-};
-
 export type Activity = {
   label: string;
+  image: ImageSource | number;
   icon: ImageSource | number;
   onAction: (times: number) => void;
 };
@@ -29,7 +25,7 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
       <Text style={styles.text}>Gather Resources</Text>
       <View style={{ width: "100%", height: 200, overflow: "hidden" }}>
         <Image
-          source={sprites.forest}
+          source={selectedActivity?.image}
           style={{ width: "100%", height: "100%" }}
           contentFit="cover"
         ></Image>
