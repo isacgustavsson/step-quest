@@ -1,14 +1,16 @@
-import { styles } from "@/styles/main";
-import { Image } from "expo-image";
+import { colors, styles } from "@/styles/main";
+import { Image, ImageSource } from "expo-image";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const sprites = {
   forest: require("@assets/img/forest.jpg"),
+  wood: require("@assets/icons/wood.png"),
 };
 
 export type Activity = {
   label: string;
+  icon: ImageSource | number;
   onAction: (times: number) => void;
 };
 
@@ -40,7 +42,16 @@ export const ResourceActionCard = ({ activities }: ResourceActionCardProps) => {
             style={[styles.button, index === selected && styles.buttonSelected]}
             onPress={() => setSelected(index)}
           >
-            <Text style={styles.text}>{activity.label}</Text>
+            <Image
+              source={activity.icon}
+              style={{
+                width: 32,
+                height: 32,
+                borderColor: colors.cardBorder,
+                flex: 1,
+              }}
+              contentFit="cover"
+            ></Image>
           </Pressable>
         ))}
       </View>
