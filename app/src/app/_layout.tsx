@@ -1,23 +1,35 @@
 import { useResourceTracking } from "@/hooks/useResourceTracking";
 import { useStepTracking } from "@/hooks/useStepTracking";
+import { colors } from "@/styles/main";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
-
-SplashScreen.preventAutoHideAsync();
+import { DefaultTheme, Stack, ThemeProvider } from "expo-router";
 
 export default function RootLayout() {
+  useStepTracking();
+  useResourceTracking();
+
   const [loaded] = useFonts({
     monogram: require("@assets/fonts/monogram.ttf"),
   });
 
   if (!loaded) return null;
 
-  useStepTracking();
-  useResourceTracking();
+  const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: "transparent",
+    },
+  };
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <ThemeProvider value={theme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </ThemeProvider>
   );
 }
