@@ -5,8 +5,8 @@ import { Alert } from "react-native";
 export const useSimulateSteps = () => {
   const deposit = useSetAtom(depositAtom);
 
-  const handleSimulateSteps = () => {
-    deposit(10);
+  const handleSimulateSteps = (amount: number) => {
+    deposit(amount);
 
     Alert.alert("deposit succeeded");
   };
