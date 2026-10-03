@@ -1,8 +1,10 @@
+import { HeaderComponent } from "@/components/header";
 import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 
 const icons = {
-  home: require("@assets/app/fc35.png"),
+  home: require("@assets/icons/home.png"),
+  settings: require("@assets/icons/settings.png"),
 };
 
 export default function TabLayout() {
@@ -10,25 +12,26 @@ export default function TabLayout() {
     <>
       <Tabs
         screenOptions={{
-          tabBarStyle: {
-            backgroundColor: "#2b2b2b",
-            height: 80,
-            borderTopWidth: 0,
-          },
+          header: () => <HeaderComponent />,
+          headerTitleStyle: { color: "#fff" },
+
           tabBarItemStyle: {
             alignItems: "center",
             justifyContent: "center",
-            paddingTop: 8,
+            paddingTop: 12,
           },
+
           tabBarIconStyle: {
             width: 32,
             height: 32,
-            paddingBottom: 4,
+            paddingBottom: 12,
           },
+
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 18,
             fontFamily: "monogram",
           },
+
           tabBarActiveTintColor: "#fff",
           tabBarInactiveTintColor: "#888",
         }}
@@ -38,7 +41,20 @@ export default function TabLayout() {
           options={{
             title: "Home",
             tabBarIcon: () => (
-              <Image source={icons.home} style={{ width: 32, height: 32 }} />
+              <Image source={icons.home} style={{ width: 36, height: 36 }} />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+            tabBarIcon: () => (
+              <Image
+                source={icons.settings}
+                style={{ width: 36, height: 36 }}
+              />
             ),
           }}
         />
