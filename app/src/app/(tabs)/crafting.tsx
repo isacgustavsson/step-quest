@@ -1,4 +1,4 @@
-import { CraftingActionCard } from "@/components/craftingActionCard";
+import { ActionCard } from "@/components/actionCard";
 import { styles } from "@/styles/main";
 import { View } from "react-native";
 
@@ -6,7 +6,9 @@ export default function Crafting() {
   return (
     <>
       <View style={styles.container}>
-        <CraftingActionCard
+        <ActionCard
+          title="crafting"
+          actionLabel="craft"
           activities={[
             {
               label: "blacksmithing",

@@ -1,14 +1,26 @@
 import { colors, styles } from "@/styles/main";
-import { Image } from "expo-image";
+import { Image, ImageSource } from "expo-image";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
-import { Activity } from "./resourceActionCard";
 
-export type CraftingActionCardProps = {
+export type Activity = {
+  label: string;
+  image: ImageSource | number;
+  icon: ImageSource | number;
+  onAction: (times: number) => void;
+};
+
+export type ActionCardProps = {
+  title: string;
+  actionLabel: string;
   activities: Activity[];
 };
 
-export const CraftingActionCard = ({ activities }: CraftingActionCardProps) => {
+export const ActionCard = ({
+  title,
+  actionLabel,
+  activities,
+}: ActionCardProps) => {
   const [count, setCount] = useState(1);
   const [selected, setSelected] = useState(0);
 
@@ -17,7 +29,7 @@ export const CraftingActionCard = ({ activities }: CraftingActionCardProps) => {
   return (
     <>
       <View style={[styles.card, { alignItems: "center" }]}>
-        <Text style={styles.text}>Crafting</Text>
+        <Text style={styles.text}>{title}</Text>
         <View style={{ width: "100%", height: 200, overflow: "hidden" }}>
           <Image
             source={selectedActivity?.image}
@@ -77,7 +89,7 @@ export const CraftingActionCard = ({ activities }: CraftingActionCardProps) => {
             style={styles.button}
             onPress={() => selectedActivity?.onAction(count)}
           >
-            <Text style={styles.text}>craft</Text>
+            <Text style={styles.text}>{actionLabel}</Text>
           </Pressable>
         </View>
       </View>

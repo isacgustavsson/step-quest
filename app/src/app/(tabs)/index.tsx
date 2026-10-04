@@ -1,4 +1,4 @@
-import { ResourceActionCard } from "@/components/resourceActionCard";
+import { ActionCard } from "@/components/actionCard";
 import { useResourceActions } from "@/hooks/useResourceActions";
 import { styles } from "@/styles/main";
 import { View } from "react-native";
@@ -8,7 +8,9 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <ResourceActionCard
+      <ActionCard
+        title="Resources"
+        actionLabel="gather"
         activities={[
           {
             label: "wood",
