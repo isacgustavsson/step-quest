@@ -1,3 +1,4 @@
+import { playerLevelAtom } from "@/state/player";
 import { resourcesAtom } from "@/state/resources";
 import { bankedStepsAtom } from "@/state/stepbank";
 import { colors, styles } from "@/styles/main";
@@ -17,6 +18,8 @@ export const HeaderComponent = () => {
   const bank = useAtomValue(bankedStepsAtom);
   const resource = useAtomValue(resourcesAtom);
   // const isAvailable = useAtomValue(isAvailableAtom);
+
+  const playerLevel = useAtomValue(playerLevelAtom);
 
   return (
     <>
@@ -57,7 +60,7 @@ export const HeaderComponent = () => {
           >
             <View style={{ gap: 4 }}>
               <Text style={styles.text}>Player Name</Text>
-              <Text style={styles.text}>Level 0</Text>
+              <Text style={styles.text}>Level {playerLevel}</Text>
 
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 4 }}

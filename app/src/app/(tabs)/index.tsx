@@ -1,14 +1,25 @@
 import { ActionCard } from "@/components/actionCard";
 import { useResourceActions } from "@/hooks/useResourceActions";
+import { addPlayerLevelAtom } from "@/state/player";
 import { styles } from "@/styles/main";
-import { ScrollView, View } from "react-native";
+import { useSetAtom } from "jotai";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function Home() {
   const { handleChopWood, handleMineStone } = useResourceActions();
 
+  const addLevel = useSetAtom(addPlayerLevelAtom);
+
+  const handlePress = () => {
+    addLevel();
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView>
+        <Pressable onPress={handlePress}>
+          <Text>add</Text>
+        </Pressable>
         <ActionCard
           title="resources"
           actionLabel="gather"

@@ -1,5 +1,7 @@
+import { playerLevelAtom } from "@/state/player";
 import { colors, styles } from "@/styles/main";
 import { Image, ImageSource } from "expo-image";
+import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -30,11 +32,10 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   const [selectedRecipe, setSelectedRecipe] = useState(0);
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const playerLevel = useAtomValue(playerLevelAtom);
 
   const category = activities[selectedCategory];
   const recipe = category.recipes[selectedRecipe];
-
-  const playerLevel = 0;
 
   return (
     <>
