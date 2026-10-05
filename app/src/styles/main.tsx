@@ -2,19 +2,20 @@ import { StyleSheet } from "react-native";
 
 export const colors = {
   // Bakgrunder
-  background: "#1c181a", // nästan svart, varm med plommonton
-  card: "#2b2528", // djup mullvadsbrun
-  cardBorder: "#544a4c", // mörkt grå-rosa trä
+  background: "#18181c",
+  card: "#2a222d",
+  cardBorder: "#544a4c",
 
   // Text
-  text: "#eadcc4", // pergament, något dämpad
-  textMuted: "#968a84",
+  text: "#eadcc4",
+  textMuted: "#ab9f98",
+  textFaint: "#7d7170",
 
   // Accenter
-  accent: "#c99e45", // mörkare, mattare guld
+  accent: "#c99e45",
   danger: "#a8463f",
-  xp: "#5590a9", // djupare dämpad blå
-  success: "#678a4a", // mörkare mossgrön
+  xp: "#5590a9",
+  success: "#678a4a",
 
   // Resurser
   wood: "#8f603e",
@@ -27,15 +28,16 @@ export const styles = StyleSheet.create({
   // Layout
   container: {
     flex: 1,
-    margin: 12,
     alignItems: "center",
+    backgroundColor: colors.background,
+    padding: 4,
   },
 
   card: {
     width: "100%",
     padding: 12,
     gap: 20,
-    backgroundColor: colors.card,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
@@ -76,11 +78,12 @@ export const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.background,
   },
 
   buttonSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.background,
+    borderColor: colors.textMuted,
+    backgroundColor: colors.cardBorder,
   },
 
   square: {

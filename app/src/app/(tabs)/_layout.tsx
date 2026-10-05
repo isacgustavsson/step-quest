@@ -1,4 +1,5 @@
 import { HeaderComponent } from "@/components/header";
+import { colors } from "@/styles/main";
 import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 
@@ -15,6 +16,10 @@ export default function TabLayout() {
         screenOptions={{
           header: () => <HeaderComponent />,
           headerTitleStyle: { color: "#fff" },
+
+          tabBarStyle: {
+            backgroundColor: colors.background,
+          },
 
           tabBarItemStyle: {
             alignItems: "center",
@@ -33,8 +38,8 @@ export default function TabLayout() {
             fontFamily: "monogram",
           },
 
-          tabBarActiveTintColor: "#fff",
-          tabBarInactiveTintColor: "#888",
+          tabBarActiveTintColor: colors.text,
+          tabBarInactiveTintColor: colors.textMuted,
         }}
       >
         <Tabs.Screen

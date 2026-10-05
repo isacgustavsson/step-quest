@@ -18,7 +18,7 @@ export default function RootLayout() {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
-      background: colors.background,
+      background: colors.card,
       card: colors.card,
       text: colors.text,
       border: "transparent",

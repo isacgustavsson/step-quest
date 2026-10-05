@@ -20,10 +20,13 @@ export const HeaderComponent = () => {
 
   return (
     <>
-      <SafeAreaView edges={["top"]} style={{ backgroundColor: colors.card }}>
+      <SafeAreaView
+        edges={["top"]}
+        style={{ backgroundColor: colors.background }}
+      >
         <View
           style={{
-            backgroundColor: colors.card,
+            backgroundColor: colors.background,
             flexDirection: "row",
             width: "100%",
             padding: 12,
