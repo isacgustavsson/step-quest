@@ -10,13 +10,15 @@ export type Recipe = {
   image?: ImageSource | number;
   icon?: ImageSource | number;
   levelUnlocked: number;
-  onAction: (times: number) => void;
+  xpYield: number;
+  cost?: { wood?: number; stone?: number };
 };
 
 export type Activity = {
   label: string;
   image: ImageSource | number;
   icon: ImageSource | number;
+  onAction: (recipe: Recipe, times: number) => void;
   recipes: Recipe[];
 };
 
@@ -144,7 +146,11 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
                   return (
                     <View key={item.label}>
                       {playerLevel < item.levelUnlocked ? (
-                        <Text style={styles.text}>locked</Text>
+                        <Text
+                          style={[styles.text, { color: colors.textMuted }]}
+                        >
+                          locked
+                        </Text>
                       ) : (
                         <View style={styles.rowBetween}>
                           <Text
@@ -190,7 +196,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
 
                               <Pressable
                                 style={styles.button}
-                                onPress={() => item.onAction(count)}
+                                onPress={() => category.onAction(item, count)}
                               >
                                 <Text style={styles.text}>gather</Text>
                               </Pressable>

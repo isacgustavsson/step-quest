@@ -1,3 +1,4 @@
+import { Recipe } from "@/components/actionCard";
 import { chopWoodAtom, GatherResult, mineStoneAtom } from "@/state/resources";
 import { useSetAtom } from "jotai";
 import { Alert } from "react-native";
@@ -19,7 +20,9 @@ export const useResourceActions = () => {
   };
 
   return {
-    handleChopWood: (times?: number) => performAction(chopWood(times)),
-    handleMineStone: (times?: number) => performAction(mineStone(times)),
+    handleChopWood: (recipe: Recipe, times: number = 1) =>
+      performAction(chopWood(times, recipe.xpYield)),
+    handleMineStone: (recipe: Recipe, times: number = 1) =>
+      performAction(mineStone(times, recipe.xpYield)),
   };
 };

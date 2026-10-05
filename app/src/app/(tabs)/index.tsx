@@ -1,25 +1,14 @@
 import { ActionCard } from "@/components/actionCard";
 import { useResourceActions } from "@/hooks/useResourceActions";
-import { addPlayerLevelAtom } from "@/state/player";
 import { styles } from "@/styles/main";
-import { useSetAtom } from "jotai";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 export default function Home() {
   const { handleChopWood, handleMineStone } = useResourceActions();
 
-  const addLevel = useSetAtom(addPlayerLevelAtom);
-
-  const handlePress = () => {
-    addLevel();
-  };
-
   return (
     <View style={styles.container}>
       <ScrollView>
-        <Pressable onPress={handlePress}>
-          <Text>add</Text>
-        </Pressable>
         <ActionCard
           title="resources"
           actionLabel="gather"
@@ -28,16 +17,17 @@ export default function Home() {
               label: "wood",
               image: require("@assets/img/forest.jpg"),
               icon: require("@assets/icons/wood.png"),
+              onAction: handleChopWood,
               recipes: [
                 {
                   label: "branches",
                   levelUnlocked: 0,
-                  onAction: handleChopWood,
+                  xpYield: 5,
                 },
                 {
                   label: "tree",
                   levelUnlocked: 1,
-                  onAction: handleChopWood,
+                  xpYield: 15,
                 },
               ],
             },
@@ -45,16 +35,17 @@ export default function Home() {
               label: "stone",
               image: require("@assets/img/mushrooms.jpg"),
               icon: require("@assets/icons/stone.png"),
+              onAction: handleMineStone,
               recipes: [
                 {
                   label: "stones",
                   levelUnlocked: 0,
-                  onAction: handleMineStone,
+                  xpYield: 5,
                 },
                 {
                   label: "boulder",
                   levelUnlocked: 1,
-                  onAction: handleChopWood,
+                  xpYield: 15,
                 },
               ],
             },
