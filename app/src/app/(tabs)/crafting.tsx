@@ -21,10 +21,12 @@ export default function Crafting() {
                 recipes: [
                   {
                     label: "stone axe",
+                    levelUnlocked: 1,
                     onAction: () => console.log("crafting stone axe"),
                   },
                   {
                     label: "stone pickaxe",
+                    levelUnlocked: 1,
                     onAction: () => console.log("craft stone pickaxe"),
                   },
                 ],
@@ -37,14 +39,17 @@ export default function Crafting() {
                 recipes: [
                   {
                     label: "wooden handle",
+                    levelUnlocked: 1,
                     onAction: () => console.log("crafting wooden handle"),
                   },
                   {
                     label: "wood spade",
+                    levelUnlocked: 1,
                     onAction: () => console.log("craft wooden spade"),
                   },
                   {
                     label: "wooden gnome",
+                    levelUnlocked: 2,
                     onAction: () => console.log("crafting wooden gnome"),
                   },
                 ],

@@ -20,10 +20,12 @@ export default function Home() {
               recipes: [
                 {
                   label: "branches",
+                  levelUnlocked: 0,
                   onAction: handleChopWood,
                 },
                 {
                   label: "tree",
+                  levelUnlocked: 1,
                   onAction: handleChopWood,
                 },
               ],
@@ -35,10 +37,12 @@ export default function Home() {
               recipes: [
                 {
                   label: "stones",
+                  levelUnlocked: 0,
                   onAction: handleMineStone,
                 },
                 {
                   label: "boulder",
+                  levelUnlocked: 1,
                   onAction: handleChopWood,
                 },
               ],

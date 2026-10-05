@@ -7,6 +7,7 @@ export type Recipe = {
   label: string;
   image?: ImageSource | number;
   icon?: ImageSource | number;
+  levelUnlocked: number;
   onAction: (times: number) => void;
 };
 
@@ -28,10 +29,12 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [selectedRecipe, setSelectedRecipe] = useState(0);
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const category = activities[selectedCategory];
   const recipe = category.recipes[selectedRecipe];
+
+  const playerLevel = 0;
 
   return (
     <>
@@ -139,67 +142,78 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
 
                   return (
                     <View key={item.label}>
-                      <View style={styles.rowBetween}>
-                        <Text
-                          style={[
-                            styles.text,
-                            {
-                              color: isSelected
-                                ? colors.text
-                                : colors.textMuted,
-                            },
-                          ]}
-                        >
-                          {item.label}
-                        </Text>
+                      {playerLevel < item.levelUnlocked ? (
+                        <Text style={styles.text}>locked</Text>
+                      ) : (
+                        <View style={styles.rowBetween}>
+                          <Text
+                            style={[
+                              styles.text,
+                              {
+                                color: isSelected
+                                  ? colors.text
+                                  : colors.textMuted,
+                              },
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
 
-                        {isSelected ? (
-                          <View style={[styles.row, { gap: 24 }]}>
-                            <View style={styles.row}>
-                              <Pressable
-                                style={styles.square}
-                                onPress={() =>
-                                  setCount((prev) => Math.max(1, prev - 1))
-                                }
-                              >
-                                <Text style={styles.text}>-</Text>
-                              </Pressable>
+                          {playerLevel < item.levelUnlocked ? (
+                            <Text style={styles.text}>
+                              required level: {item.levelUnlocked}
+                            </Text>
+                          ) : isSelected ? (
+                            <View style={[styles.row, { gap: 24 }]}>
+                              <View style={styles.row}>
+                                <Pressable
+                                  style={styles.square}
+                                  onPress={() =>
+                                    setCount((prev) => Math.max(1, prev - 1))
+                                  }
+                                >
+                                  <Text style={styles.text}>-</Text>
+                                </Pressable>
 
-                              <View style={styles.square}>
-                                <Text style={styles.text}>{count}</Text>
+                                <View style={styles.square}>
+                                  <Text style={styles.text}>{count}</Text>
+                                </View>
+
+                                <Pressable
+                                  style={styles.square}
+                                  onPress={() => setCount((prev) => prev + 1)}
+                                >
+                                  <Text style={styles.text}>+</Text>
+                                </Pressable>
                               </View>
 
                               <Pressable
-                                style={styles.square}
-                                onPress={() => setCount((prev) => prev + 1)}
+                                style={styles.button}
+                                onPress={() => item.onAction(count)}
                               >
-                                <Text style={styles.text}>+</Text>
+                                <Text style={styles.text}>gather</Text>
                               </Pressable>
                             </View>
-
+                          ) : (
                             <Pressable
                               style={styles.button}
-                              onPress={() => item.onAction(count)}
+                              onPress={() => {
+                                setSelectedRecipe(index);
+                                setCount(1);
+                              }}
                             >
-                              <Text style={styles.text}>gather</Text>
+                              <Text
+                                style={[
+                                  styles.text,
+                                  { color: colors.textMuted },
+                                ]}
+                              >
+                                select
+                              </Text>
                             </Pressable>
-                          </View>
-                        ) : (
-                          <Pressable
-                            style={styles.button}
-                            onPress={() => {
-                              setSelectedRecipe(index);
-                              setCount(1);
-                            }}
-                          >
-                            <Text
-                              style={[styles.text, { color: colors.textMuted }]}
-                            >
-                              select
-                            </Text>
-                          </Pressable>
-                        )}
-                      </View>
+                          )}
+                        </View>
+                      )}
 
                       {index < category.recipes.length - 1 && (
                         <ListDivider mt={32} mb={32} />
