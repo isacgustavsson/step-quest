@@ -4,30 +4,40 @@ import { styles } from "@/styles/main";
 import { ScrollView, View } from "react-native";
 
 export default function Home() {
-  const { handleChopWood, handleMineStone } = useResourceActions();
+  const { handleGather } = useResourceActions();
 
   return (
     <View style={styles.container}>
       <ScrollView>
         <ActionCard
           title="resources"
-          actionLabel="gather"
           activities={[
             {
               label: "wood",
               image: require("@assets/img/forest.jpg"),
               icon: require("@assets/icons/wood.png"),
-              onAction: handleChopWood,
+              onAction: handleGather,
               recipes: [
                 {
-                  label: "branches",
+                  label: "pine branch",
+                  resourceKey: "pine branch",
+                  actionLabel: "gather",
                   levelUnlocked: 0,
                   xpYield: 5,
                 },
                 {
-                  label: "tree",
-                  levelUnlocked: 1,
+                  label: "birch log",
+                  resourceKey: "birch log",
+                  actionLabel: "chop tree",
+                  levelUnlocked: 2,
                   xpYield: 15,
+                },
+                {
+                  label: "oak log",
+                  resourceKey: "oak log",
+                  actionLabel: "log tree",
+                  levelUnlocked: 5,
+                  xpYield: 25,
                 },
               ],
             },
@@ -35,17 +45,28 @@ export default function Home() {
               label: "stone",
               image: require("@assets/img/mushrooms.jpg"),
               icon: require("@assets/icons/stone.png"),
-              onAction: handleMineStone,
+              onAction: handleGather,
               recipes: [
                 {
-                  label: "stones",
+                  label: "stone",
+                  resourceKey: "stone",
+                  actionLabel: "gather",
                   levelUnlocked: 0,
                   xpYield: 5,
                 },
                 {
-                  label: "boulder",
-                  levelUnlocked: 1,
+                  label: "copper ore",
+                  resourceKey: "copper ore",
+                  actionLabel: "mine",
+                  levelUnlocked: 2,
                   xpYield: 15,
+                },
+                {
+                  label: "tin ore",
+                  resourceKey: "tin ore",
+                  actionLabel: "mine",
+                  levelUnlocked: 5,
+                  xpYield: 25,
                 },
               ],
             },

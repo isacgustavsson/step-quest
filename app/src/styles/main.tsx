@@ -42,6 +42,16 @@ export const styles = StyleSheet.create({
     borderColor: colors.cardBorder,
   },
 
+  tile: {
+    width: 94,
+    height: 94,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",

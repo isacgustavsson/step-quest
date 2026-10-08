@@ -1,5 +1,9 @@
-import { isAvailableAtom } from "@/state/pedometer";
-import { BANK_KEY, bankedStepsAtom, depositAtom } from "@/state/stepbank";
+import {
+  BANK_KEY,
+  bankedStepsAtom,
+  depositAtom,
+  isAvailableAtom,
+} from "@/state/stepbank";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Pedometer } from "expo-sensors";
 import { useSetAtom } from "jotai";

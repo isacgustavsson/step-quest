@@ -1,28 +1,28 @@
 import { Recipe } from "@/components/actionCard";
-import { chopWoodAtom, GatherResult, mineStoneAtom } from "@/state/resources";
+import * as Haptics from "expo-haptics";
 import { useSetAtom } from "jotai";
 import { Alert } from "react-native";
 
-export const useResourceActions = () => {
-  const chopWood = useSetAtom(chopWoodAtom);
-  const mineStone = useSetAtom(mineStoneAtom);
+import { gatherAtom } from "@/state/resources";
 
-  const performAction = (result: GatherResult) => {
+export const useResourceActions = () => {
+  const gather = useSetAtom(gatherAtom);
+
+  const handleGather = (recipe: Recipe, times: number = 1) => {
+    const result = gather(recipe, times);
+
     if (!result.ok) {
-      Alert.alert("could not perform action", result.reason);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert("Could not gather", result.reason);
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
-      "action succeeded",
-      `lost: ${result.cost} steps, gained: ${result.gain}`,
+      "success!",
+      `-${result.cost} steps. \n+${result.gain} ${recipe.label} \n+${result.xp} xp`,
     );
   };
 
-  return {
-    handleChopWood: (recipe: Recipe, times: number = 1) =>
-      performAction(chopWood(times, recipe.xpYield)),
-    handleMineStone: (recipe: Recipe, times: number = 1) =>
-      performAction(mineStone(times, recipe.xpYield)),
-  };
+  return { handleGather };
 };

@@ -1,52 +1,63 @@
+import { Recipe } from "@/components/actionCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ImageSource } from "expo-image";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
 import { RESOURCES_KEY, resourcesAtom } from "./resources";
 
 export type CraftResult =
   | { ok: false; reason: string }
-  | { ok: true; xp: number };
+  | { ok: true; xp: number; cost: Record<string, number>; amount: number };
+
+export type InventoryEntry = {
+  amount: number;
+  icon?: ImageSource | number;
+};
 
 export const INVENTORY_KEY = "crafting:inventory";
-export const inventoryAtom = atom<Record<string, number>>({});
+export const inventoryAtom = atom<Record<string, InventoryEntry>>({});
 
 export const craftAtom = atom(
   null,
-  (
-    get,
-    set,
-    itemLabel: string,
-    cost: { wood?: number; stone?: number },
-    xpYield: number,
-  ): CraftResult => {
+  (get, set, recipe: Recipe, times: number = 1): CraftResult => {
+    const cost = recipe.cost ?? {};
     const resources = get(resourcesAtom);
 
-    const hasEnough =
-      (resources.wood ?? 0) >= (cost.wood ?? 0) &&
-      (resources.stone ?? 0) >= (cost.stone ?? 0);
+    const hasEnoughResources = Object.entries(cost).every(
+      ([key, amount]) => (resources[key] ?? 0) >= amount * times,
+    );
 
-    if (!hasEnough) {
-      return { ok: false, reason: "Inte tillräckligt med resurser" };
+    if (!hasEnoughResources) {
+      return { ok: false, reason: "Not enough resources.." };
     }
 
-    const nextResources = {
-      ...resources,
-      wood: resources.wood - (cost.wood ?? 0),
-      stone: resources.stone - (cost.stone ?? 0),
-    };
+    const nextResources = { ...resources };
+    const totalCost: Record<string, number> = {};
+
+    for (const [key, amount] of Object.entries(cost)) {
+      const spent = amount * times;
+      nextResources[key] = (nextResources[key] ?? 0) - spent;
+      totalCost[key] = spent;
+    }
+
     set(resourcesAtom, nextResources);
     AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(nextResources));
 
     const inventory = get(inventoryAtom);
+    const existing = inventory[recipe.label];
     const nextInventory = {
       ...inventory,
-      [itemLabel]: (inventory[itemLabel] ?? 0) + 1,
+      [recipe.label]: {
+        amount: (existing?.amount ?? 0) + times,
+        icon: recipe.icon,
+      },
     };
     set(inventoryAtom, nextInventory);
     AsyncStorage.setItem(INVENTORY_KEY, JSON.stringify(nextInventory));
 
-    set(addXpAtom, xpYield);
+    const totalXp = recipe.xpYield * times;
+    set(addXpAtom, totalXp);
 
-    return { ok: true, xp: xpYield };
+    return { ok: true, xp: totalXp, cost: totalCost, amount: times };
   },
 );

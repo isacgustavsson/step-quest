@@ -10,8 +10,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const sprites = {
   player: require("@assets/icons/player.png"),
   coin: require("@assets/icons/coins.png"),
-  wood: require("@assets/icons/wood.png"),
-  stone: require("@assets/icons/stone.png"),
 };
 
 export const HeaderComponent = () => {
@@ -32,7 +30,7 @@ export const HeaderComponent = () => {
             backgroundColor: colors.background,
             flexDirection: "row",
             width: "100%",
-            padding: 12,
+            padding: 16,
             gap: 12,
             marginBottom: 12,
           }}
@@ -70,29 +68,6 @@ export const HeaderComponent = () => {
                   style={{ width: 16, height: 16 }}
                 ></Image>
                 <Text style={styles.text}>{bank}</Text>
-              </View>
-            </View>
-
-            <View style={{ gap: 4 }}>
-              <Text style={styles.text}>Resources</Text>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
-                <Image
-                  source={sprites.wood}
-                  style={{ width: 16, height: 16 }}
-                ></Image>
-                <Text style={styles.text}>{resource.wood}</Text>
-              </View>
-
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-              >
-                <Image
-                  source={sprites.stone}
-                  style={{ width: 16, height: 16 }}
-                ></Image>
-                <Text style={styles.text}>{resource.stone}</Text>
               </View>
             </View>
           </View>

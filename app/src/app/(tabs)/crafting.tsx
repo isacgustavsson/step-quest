@@ -7,64 +7,62 @@ export default function Crafting() {
   const { handleCraft } = useCraftingActions();
 
   return (
-    <>
-      <View style={styles.container}>
-        <ScrollView>
-          <ActionCard
-            title="crafting"
-            actionLabel="craft"
-            activities={[
-              {
-                label: "blacksmithing",
-                image: require("@assets/img/blacksmith.png"),
-                icon: require("@assets/icons/anvil.png"),
-                onAction: handleCraft,
-                recipes: [
-                  {
-                    label: "stone axe",
-                    levelUnlocked: 1,
-                    xpYield: 5,
-                    cost: { wood: 1, stone: 2 },
-                  },
-                  {
-                    label: "stone pickaxe",
-                    levelUnlocked: 1,
-                    xpYield: 15,
-                    cost: { wood: 2, stone: 3 },
-                  },
-                ],
-              },
-
-              {
-                label: "carpentry",
-                image: require("@assets/img/carpentry.png"),
-                icon: require("@assets/icons/wood.png"),
-                onAction: handleCraft,
-                recipes: [
-                  {
-                    label: "wooden handle",
-                    levelUnlocked: 1,
-                    xpYield: 5,
-                    cost: { wood: 1, stone: 2 },
-                  },
-                  {
-                    label: "wood spade",
-                    levelUnlocked: 1,
-                    xpYield: 15,
-                    cost: { wood: 2, stone: 3 },
-                  },
-                  {
-                    label: "wooden gnome",
-                    levelUnlocked: 2,
-                    xpYield: 30,
-                    cost: { wood: 3, stone: 4 },
-                  },
-                ],
-              },
-            ]}
-          />
-        </ScrollView>
-      </View>
-    </>
+    <View style={styles.container}>
+      <ScrollView>
+        <ActionCard
+          title="crafting"
+          activities={[
+            {
+              label: "blacksmithing",
+              image: require("@assets/img/blacksmith.png"),
+              icon: require("@assets/icons/anvil.png"),
+              onAction: handleCraft,
+              recipes: [
+                {
+                  label: "stone axe",
+                  actionLabel: "craft",
+                  icon: require("@assets/icons/stone_axe.png"),
+                  levelUnlocked: 2,
+                  xpYield: 10,
+                  cost: { "pine branch": 20, stone: 30 },
+                },
+                {
+                  label: "stone pickaxe",
+                  actionLabel: "craft",
+                  icon: require("@assets/icons/stone_pickaxe.png"),
+                  levelUnlocked: 2,
+                  xpYield: 10,
+                  cost: { "pine branch": 20, stone: 30 },
+                },
+              ],
+            },
+            {
+              label: "carpentry",
+              image: require("@assets/img/carpentry.png"),
+              icon: require("@assets/icons/wood.png"),
+              onAction: handleCraft,
+              recipes: [
+                {
+                  label: "wood skull",
+                  actionLabel: "craft",
+                  icon: require("@assets/icons/woodenSkull.png"),
+                  levelUnlocked: 1,
+                  xpYield: 20,
+                  cost: { "pine branch": 50 },
+                },
+                {
+                  label: "wood shield",
+                  actionLabel: "craft",
+                  icon: require("@assets/icons/woodenShield.png"),
+                  levelUnlocked: 2,
+                  xpYield: 30,
+                  cost: { "birch log": 100, stone: 50 },
+                },
+              ],
+            },
+          ]}
+        />
+      </ScrollView>
+    </View>
   );
 }

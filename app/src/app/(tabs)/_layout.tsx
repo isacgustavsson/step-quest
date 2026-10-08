@@ -7,6 +7,7 @@ const icons = {
   home: require("@assets/icons/home.png"),
   settings: require("@assets/icons/settings.png"),
   crafting: require("@assets/icons/anvil.png"),
+  inventory: require("@assets/icons/chest.png"),
 };
 
 export default function TabLayout() {
@@ -59,7 +60,20 @@ export default function TabLayout() {
             tabBarIcon: () => (
               <Image
                 source={icons.crafting}
-                style={{ width: 36, height: 36 }}
+                style={{ width: 32, height: 32 }}
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="inventory"
+          options={{
+            title: "Inventory",
+            tabBarIcon: () => (
+              <Image
+                source={icons.inventory}
+                style={{ width: 32, height: 32 }}
               />
             ),
           }}
@@ -72,7 +86,7 @@ export default function TabLayout() {
             tabBarIcon: () => (
               <Image
                 source={icons.settings}
-                style={{ width: 36, height: 36 }}
+                style={{ width: 32, height: 32 }}
               />
             ),
           }}

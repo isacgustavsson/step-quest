@@ -7,11 +7,13 @@ import { Pressable, Text, View } from "react-native";
 
 export type Recipe = {
   label: string;
+  actionLabel: string;
   image?: ImageSource | number;
   icon?: ImageSource | number;
   levelUnlocked: number;
   xpYield: number;
-  cost?: { wood?: number; stone?: number };
+  resourceKey?: string;
+  cost?: Record<string, number>;
 };
 
 export type Activity = {
@@ -24,7 +26,6 @@ export type Activity = {
 
 export type ActionCardProps = {
   title: string;
-  actionLabel: string;
   activities: Activity[];
 };
 
@@ -37,7 +38,6 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   const playerLevel = useAtomValue(playerLevelAtom);
 
   const category = activities[selectedCategory];
-  const recipe = category.recipes[selectedRecipe];
 
   return (
     <>
@@ -139,7 +139,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
 
           <View>
             {isExpanded && (
-              <View style={{ marginTop: 4, marginBottom: 4 }}>
+              <View style={{ marginTop: 12, marginBottom: 12 }}>
                 {category.recipes.map((item, index) => {
                   const isSelected = index === selectedRecipe;
 
@@ -194,11 +194,15 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
                                 </Pressable>
                               </View>
 
+                              {/***********************  HÄR  ***********************/}
+
                               <Pressable
                                 style={styles.button}
                                 onPress={() => category.onAction(item, count)}
                               >
-                                <Text style={styles.text}>gather</Text>
+                                <Text style={styles.text}>
+                                  {item.actionLabel}
+                                </Text>
                               </Pressable>
                             </View>
                           ) : (
@@ -243,7 +247,7 @@ type ListDividerProps = {
   color?: string;
 };
 
-const ListDivider = ({
+export const ListDivider = ({
   mt,
   mb,
   color = colors.cardBorder,

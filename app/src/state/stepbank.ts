@@ -7,6 +7,8 @@ type WithDrawResult =
   | { ok: false; reason: string }
   | { ok: true; newBalance: number };
 
+export const isAvailableAtom = atom(false);
+
 export const bankedStepsAtom = atom(0);
 
 export const depositAtom = atom(null, (get, set, delta: number) => {

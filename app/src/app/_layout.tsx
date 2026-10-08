@@ -1,3 +1,6 @@
+import { HeaderComponent } from "@/components/header";
+import { useInventoryTracking } from "@/hooks/useInventoryTracking";
+import { usePlayerTracking } from "@/hooks/usePlayerTracking";
 import { useResourceTracking } from "@/hooks/useResourceTracking";
 import { useStepTracking } from "@/hooks/useStepTracking";
 import { colors } from "@/styles/main";
@@ -7,6 +10,8 @@ import { DefaultTheme, Stack, ThemeProvider } from "expo-router";
 export default function RootLayout() {
   useStepTracking();
   useResourceTracking();
+  usePlayerTracking();
+  useInventoryTracking();
 
   const [loaded] = useFonts({
     monogram: require("@assets/fonts/monogram.ttf"),
@@ -29,6 +34,10 @@ export default function RootLayout() {
     <ThemeProvider value={theme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="details/[label]"
+          options={{ header: () => <HeaderComponent /> }}
+        />
       </Stack>
     </ThemeProvider>
   );
