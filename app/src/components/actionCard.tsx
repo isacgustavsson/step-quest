@@ -1,3 +1,4 @@
+import { RecipeModal } from "@/components/recipeModal";
 import { playerLevelAtom } from "@/state/player";
 import { colors, styles } from "@/styles/main";
 import { Image, ImageSource } from "expo-image";
@@ -7,6 +8,7 @@ import { Pressable, Text, View } from "react-native";
 
 export type Recipe = {
   label: string;
+  description?: string;
   actionLabel: string;
   image?: ImageSource | number;
   icon?: ImageSource | number;
@@ -30,9 +32,8 @@ export type ActionCardProps = {
 };
 
 export const ActionCard = ({ title, activities }: ActionCardProps) => {
-  const [count, setCount] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState(0);
-  const [selectedRecipe, setSelectedRecipe] = useState(0);
+  const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const playerLevel = useAtomValue(playerLevelAtom);
@@ -140,103 +141,51 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
           <View>
             {isExpanded && (
               <View style={{ marginTop: 12, marginBottom: 12 }}>
-                {category.recipes.map((item, index) => {
-                  const isSelected = index === selectedRecipe;
-
-                  return (
-                    <View key={item.label}>
-                      {playerLevel < item.levelUnlocked ? (
+                {category.recipes.map((item, index) => (
+                  <View key={item.label}>
+                    {playerLevel < item.levelUnlocked ? (
+                      <View style={styles.rowBetween}>
                         <Text
                           style={[styles.text, { color: colors.textMuted }]}
                         >
                           locked
                         </Text>
-                      ) : (
-                        <View style={styles.rowBetween}>
-                          <Text
-                            style={[
-                              styles.text,
-                              {
-                                color: isSelected
-                                  ? colors.text
-                                  : colors.textMuted,
-                              },
-                            ]}
-                          >
-                            {item.label}
-                          </Text>
+                        <Text
+                          style={[styles.text, { color: colors.textMuted }]}
+                        >
+                          required level: {item.levelUnlocked}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Pressable
+                        style={styles.rowBetween}
+                        onPress={() => setOpenRecipe(item)}
+                      >
+                        <Text style={styles.text}>{item.label}</Text>
+                        <Text
+                          style={[styles.text, { color: colors.textMuted }]}
+                        >
+                          <Text>open</Text>
+                        </Text>
+                      </Pressable>
+                    )}
 
-                          {playerLevel < item.levelUnlocked ? (
-                            <Text style={styles.text}>
-                              required level: {item.levelUnlocked}
-                            </Text>
-                          ) : isSelected ? (
-                            <View style={[styles.row, { gap: 24 }]}>
-                              <View style={styles.row}>
-                                <Pressable
-                                  style={styles.square}
-                                  onPress={() =>
-                                    setCount((prev) => Math.max(1, prev - 1))
-                                  }
-                                >
-                                  <Text style={styles.text}>-</Text>
-                                </Pressable>
-
-                                <View style={styles.square}>
-                                  <Text style={styles.text}>{count}</Text>
-                                </View>
-
-                                <Pressable
-                                  style={styles.square}
-                                  onPress={() => setCount((prev) => prev + 1)}
-                                >
-                                  <Text style={styles.text}>+</Text>
-                                </Pressable>
-                              </View>
-
-                              {/***********************  HÄR  ***********************/}
-
-                              <Pressable
-                                style={styles.button}
-                                onPress={() => category.onAction(item, count)}
-                              >
-                                <Text style={styles.text}>
-                                  {item.actionLabel}
-                                </Text>
-                              </Pressable>
-                            </View>
-                          ) : (
-                            <Pressable
-                              style={styles.button}
-                              onPress={() => {
-                                setSelectedRecipe(index);
-                                setCount(1);
-                              }}
-                            >
-                              <Text
-                                style={[
-                                  styles.text,
-                                  { color: colors.textMuted },
-                                ]}
-                              >
-                                select
-                              </Text>
-                            </Pressable>
-                          )}
-                        </View>
-                      )}
-
-                      {index < category.recipes.length - 1 && (
-                        <ListDivider mt={32} mb={32} />
-                      )}
-                    </View>
-                  );
-                })}
+                    {index < category.recipes.length - 1 && (
+                      <ListDivider mt={32} mb={32} />
+                    )}
+                  </View>
+                ))}
               </View>
             )}
           </View>
         </View>
       </View>
+
+      <RecipeModal
+        recipe={openRecipe}
+        onAction={category.onAction}
+        onClose={() => setOpenRecipe(null)}
+      />
     </>
   );
 };

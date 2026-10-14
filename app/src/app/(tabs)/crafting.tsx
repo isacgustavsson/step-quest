@@ -20,6 +20,7 @@ export default function Crafting() {
               recipes: [
                 {
                   label: "stone axe",
+                  description: "A crude axe for chopping wood.",
                   actionLabel: "craft",
                   icon: require("@assets/icons/stone_axe.png"),
                   levelUnlocked: 2,
@@ -28,6 +29,7 @@ export default function Crafting() {
                 },
                 {
                   label: "stone pickaxe",
+                  description: "A simple pickaxe for breaking rocks.",
                   actionLabel: "craft",
                   icon: require("@assets/icons/stone_pickaxe.png"),
                   levelUnlocked: 2,
@@ -44,6 +46,7 @@ export default function Crafting() {
               recipes: [
                 {
                   label: "wood skull",
+                  description: "A carved skull. Spooky, but useless.",
                   actionLabel: "craft",
                   icon: require("@assets/icons/woodenSkull.png"),
                   levelUnlocked: 1,
@@ -52,6 +55,7 @@ export default function Crafting() {
                 },
                 {
                   label: "wood shield",
+                  description: "A sturdy shield reinforced with stone.",
                   actionLabel: "craft",
                   icon: require("@assets/icons/woodenShield.png"),
                   levelUnlocked: 2,

@@ -11,13 +11,13 @@ export const resourcesAtom = atom<Record<string, number>>({
   stone: 0,
 });
 
-const COST = 10;
-const GAIN = 2;
+export const GATHER_STEP_COST = 10;
+export const GATHER_GAIN = 2;
 
 export const gatherAtom = atom(
   null,
   (get, set, recipe: Recipe, times: number = 1): GatherResult => {
-    const totalCost = COST * times;
+    const totalCost = GATHER_STEP_COST * times;
     const result = set(withdrawAtom, totalCost);
 
     if (!result.ok) {
@@ -25,7 +25,7 @@ export const gatherAtom = atom(
     }
 
     const key = recipe.resourceKey ?? recipe.label;
-    const totalGain = GAIN * times;
+    const totalGain = GATHER_GAIN * times;
 
     const current = get(resourcesAtom);
     const next = { ...current, [key]: (current[key] ?? 0) + totalGain };
