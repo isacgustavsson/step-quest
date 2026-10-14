@@ -8,9 +8,11 @@ export default function Crafting() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ width: "100%" }}>
+      {/* utan detta tar ScrollView över tryck på knappar medan receptlistan
+          fortfarande glider, så att man måste trycka igen */}
+      <ScrollView style={{ width: "100%" }} disableScrollViewPanResponder>
         <ActionCard
-          title="crafting"
+          title="Crafting"
           activities={[
             {
               label: "blacksmithing",

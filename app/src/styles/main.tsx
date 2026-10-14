@@ -43,8 +43,6 @@ export const styles = StyleSheet.create({
   },
 
   tile: {
-    width: 94,
-    height: 94,
     gap: 12,
     borderWidth: 1,
     borderColor: "transparent",
@@ -68,7 +66,7 @@ export const styles = StyleSheet.create({
   // text
   text: {
     fontFamily: "monogram",
-    fontSize: 24,
+    fontSize: 26,
     lineHeight: 24,
     color: colors.text,
   },

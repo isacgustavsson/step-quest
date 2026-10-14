@@ -38,7 +38,7 @@ Stegräknaren fungerar bara på en riktig telefon. I simulatorn kan du lägga ti
 | `View`                 | Layout och behållare för alla skärmar, kort och rader.                        |
 | `Text`                 | All text i appen, med pixelfonten `monogram`.                                 |
 | `Pressable`            | Knappar: aktiviteter, recept, +/−, craft/gather, inventory-rutor.             |
-| `ScrollView`           | Gör gathering-, crafting- och inventory-skärmarna scrollbara.                 |
+| `ScrollView`           | Gör skärmarna scrollbara och visar recepten som en horisontell karusell.      |
 | `TextInput`            | Fält i Settings för antal steg att lägga till, och för antal i receptmodalen. |
 | `Modal`                | Receptmodalen med ikon, beskrivning, kostnad, XP och val av antal.            |
 | `KeyboardAvoidingView` | Skjuter upp receptmodalen så att tangentbordet inte täcker den.               |

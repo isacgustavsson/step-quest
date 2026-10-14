@@ -4,8 +4,15 @@ import { RESOURCE_ICONS } from "@/state/resourceIcons";
 import { colors, styles } from "@/styles/main";
 import { Image, ImageSource } from "expo-image";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 export type Recipe = {
   label: string;
@@ -30,6 +37,9 @@ export type Activity = {
 export const getRecipeIcon = (recipe: Recipe) =>
   recipe.icon ?? RESOURCE_ICONS[recipe.resourceKey ?? recipe.label];
 
+const TILE_GAP = 8;
+const VISIBLE_TILES = 3;
+
 export type ActionCardProps = {
   title: string;
   activities: Activity[];
@@ -39,9 +49,25 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
 
+  const [rowWidth, setRowWidth] = useState(0);
+  const [scrollIndex, setScrollIndex] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
   const playerLevel = useAtomValue(playerLevelAtom);
 
   const category = activities[selectedCategory];
+  const tileSize = (rowWidth - (VISIBLE_TILES - 1) * TILE_GAP) / VISIBLE_TILES;
+  const interval = tileSize + TILE_GAP;
+  const maxIndex = Math.max(0, category.recipes.length - VISIBLE_TILES);
+
+  const scrollTo = (index: number) => {
+    const next = Math.min(maxIndex, Math.max(0, index));
+    scrollRef.current?.scrollTo({ x: next * interval, animated: true });
+    setScrollIndex(next);
+  };
+
+  // uppdatera bara när skrollen har stannat, inte varje frame
+  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
+    setScrollIndex(Math.round(e.nativeEvent.contentOffset.x / interval));
 
   return (
     <>
@@ -64,25 +90,28 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
         </View>
 
         <View style={{ width: "100%" }}>
-          <Text style={[styles.text, { marginBottom: 16 }]}>Activities</Text>
+          <Text
+            style={[styles.text, { marginBottom: 16, alignSelf: "center" }]}
+          >
+            Activities
+          </Text>
           <View style={[styles.row, { width: "100%", gap: 12 }]}>
             {activities.map((activity, index) => (
               <View key={activity.label}>
                 <Pressable
                   style={[
                     styles.button,
+                    { width: 48, height: 48, paddingHorizontal: 0 },
                     index === selectedCategory && styles.buttonSelected,
                   ]}
-                  onPress={() => setSelectedCategory(index)}
+                  onPress={() => {
+                    setSelectedCategory(index);
+                    setScrollIndex(0);
+                  }}
                 >
                   <Image
                     source={activity.icon}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderColor: colors.cardBorder,
-                      flex: 1,
-                    }}
+                    style={{ width: 36, height: 36 }}
                     contentFit="cover"
                   ></Image>
                 </Pressable>
@@ -92,25 +121,46 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
         </View>
 
         <View style={{ width: "100%" }}>
-          <Text style={[styles.text, { marginBottom: 16 }]}>Recipes</Text>
-          <ListDivider />
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 8,
-              alignSelf: "flex-start",
-              paddingVertical: 12,
-            }}
+          <Text
+            style={[styles.text, { marginBottom: 16, alignSelf: "center" }]}
           >
-            {category.recipes.map((recipe) => (
-              <RecipeTile
-                key={recipe.label}
-                recipe={recipe}
-                locked={playerLevel < recipe.levelUnlocked}
-                onPress={() => setOpenRecipe(recipe)}
-              />
-            ))}
+            Recipes
+          </Text>
+          <View style={[styles.row, { gap: 8 }]}>
+            <ScrollArrow
+              label="<"
+              disabled={scrollIndex <= 0}
+              onPress={() => scrollTo(scrollIndex - VISIBLE_TILES)}
+            />
+            <ScrollView
+              key={category.label}
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={interval}
+              decelerationRate="fast"
+              onScrollEndDrag={handleScrollEnd}
+              onMomentumScrollEnd={handleScrollEnd}
+              contentContainerStyle={{ gap: TILE_GAP, paddingVertical: 12 }}
+            >
+              {rowWidth > 0 &&
+                category.recipes.map((recipe) => (
+                  <RecipeTile
+                    key={recipe.label}
+                    recipe={recipe}
+                    size={tileSize}
+                    locked={playerLevel < recipe.levelUnlocked}
+                    onPress={() => setOpenRecipe(recipe)}
+                  />
+                ))}
+            </ScrollView>
+            <ScrollArrow
+              label=">"
+              disabled={scrollIndex >= maxIndex}
+              onPress={() => scrollTo(scrollIndex + VISIBLE_TILES)}
+            />
           </View>
         </View>
       </View>
@@ -124,13 +174,44 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   );
 };
 
+type ScrollArrowProps = {
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+};
+
+const ScrollArrow = ({ label, disabled, onPress }: ScrollArrowProps) => (
+  <Pressable
+    disabled={disabled}
+    onPress={onPress}
+    hitSlop={8}
+    // fast bredd och full höjd ger en stor tryckyta bredvid rutorna
+    style={{ width: 36, alignSelf: "stretch", justifyContent: "center" }}
+  >
+    <Text
+      style={[
+        styles.text,
+        {
+          fontSize: 40,
+          lineHeight: 40,
+          textAlign: "center",
+          color: disabled ? colors.textFaint : colors.text,
+        },
+      ]}
+    >
+      {label}
+    </Text>
+  </Pressable>
+);
+
 type RecipeTileProps = {
   recipe: Recipe;
+  size: number;
   locked: boolean;
   onPress: () => void;
 };
 
-const RecipeTile = ({ recipe, locked, onPress }: RecipeTileProps) => {
+const RecipeTile = ({ recipe, size, locked, onPress }: RecipeTileProps) => {
   const icon = getRecipeIcon(recipe);
 
   return (
@@ -139,29 +220,46 @@ const RecipeTile = ({ recipe, locked, onPress }: RecipeTileProps) => {
       onPress={onPress}
       style={({ pressed }) => [
         styles.tile,
-        { gap: 4, borderColor: colors.cardBorder },
+        {
+          width: size,
+          height: size,
+          padding: 6,
+          gap: 4,
+          borderColor: colors.cardBorder,
+        },
         pressed && styles.buttonSelected,
       ]}
     >
-      <View style={{ width: 42, height: 42, opacity: locked ? 0.3 : 1 }}>
-        {icon && (
-          <Image
-            source={icon}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-          />
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {locked ? (
+          <Text
+            style={[styles.text, { fontSize: 14, color: colors.textMuted }]}
+          >
+            locked
+          </Text>
+        ) : (
+          icon && (
+            <Image
+              source={icon}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="cover"
+            />
+          )
         )}
       </View>
 
-      <Text
-        style={[
-          styles.text,
-          { fontSize: 14, color: locked ? colors.textFaint : colors.text },
-        ]}
-        numberOfLines={1}
-      >
-        {recipe.label}
-      </Text>
+      {!locked && (
+        <Text style={[styles.text, { fontSize: 14 }]} numberOfLines={1}>
+          {recipe.label}
+        </Text>
+      )}
 
       {locked && (
         <Text style={[styles.text, { fontSize: 14, color: colors.textMuted }]}>

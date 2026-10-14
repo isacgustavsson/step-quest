@@ -8,9 +8,9 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ width: "100%" }}>
+      <ScrollView style={{ width: "100%" }} disableScrollViewPanResponder>
         <ActionCard
-          title="resources"
+          title="Resources"
           activities={[
             {
               label: "wood",
