@@ -33,6 +33,20 @@ export default function Home() {
                   xpYield: 15,
                 },
                 {
+                  label: "willow log",
+                  resourceKey: "willow log",
+                  actionLabel: "chop tree",
+                  levelUnlocked: 3,
+                  xpYield: 20,
+                },
+                {
+                  label: "maple log",
+                  resourceKey: "maple log",
+                  actionLabel: "chop tree",
+                  levelUnlocked: 4,
+                  xpYield: 22,
+                },
+                {
                   label: "oak log",
                   resourceKey: "oak log",
                   actionLabel: "log tree",
@@ -60,6 +74,20 @@ export default function Home() {
                   actionLabel: "mine",
                   levelUnlocked: 2,
                   xpYield: 15,
+                },
+                {
+                  label: "coal",
+                  resourceKey: "coal",
+                  actionLabel: "mine",
+                  levelUnlocked: 3,
+                  xpYield: 20,
+                },
+                {
+                  label: "iron ore",
+                  resourceKey: "iron ore",
+                  actionLabel: "mine",
+                  levelUnlocked: 4,
+                  xpYield: 22,
                 },
                 {
                   label: "tin ore",
