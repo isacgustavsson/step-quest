@@ -1,26 +1,36 @@
 import {
-  MAP,
   MAP_HEIGHT,
   MAP_WIDTH,
   Point,
-  TILE_COLORS,
   TILE_SIZE,
+  TILESET_IMAGE,
+  WORLD,
 } from "@/map/tilemap";
 import { colors } from "@/styles/main";
 import { Image } from "expo-image";
-import { memo, useMemo, useRef } from "react";
+import {
+  Atlas,
+  Canvas,
+  FilterMode,
+  Group,
+  MipmapMode,
+  Skia,
+  useImage,
+} from "@shopify/react-native-skia";
+import { useMemo, useRef } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
 } from "react-native-reanimated";
 
 const MAP_PIXEL_WIDTH = MAP_WIDTH * TILE_SIZE;
 const MAP_PIXEL_HEIGHT = MAP_HEIGHT * TILE_SIZE;
 
-const MIN_SCALE = 0.5;
+const MIN_SCALE = 0.15;
 const MAX_SCALE = 3;
 const START_SCALE = 1.5;
 // hur långt kartan får dras förbi kanten
@@ -40,24 +50,42 @@ const clampOffset = (offset: number, view: number, content: number) => {
   return clamp(offset, Math.min(a, b), Math.max(a, b));
 };
 
-// ritas bara en gång, kartan ändras aldrig
-const Tiles = memo(function Tiles() {
-  return MAP.flatMap((row, y) =>
-    row.map((tile, x) => (
-      <View
-        key={`${x},${y}`}
-        style={[
-          tileStyles.tile,
-          {
-            left: x * TILE_SIZE,
-            top: y * TILE_SIZE,
-            backgroundColor: TILE_COLORS[tile],
-          },
-        ]}
-      />
-    )),
-  );
-});
+// pixelgrafiken ska förstoras utan utsmetning
+const PIXEL_SAMPLING = { filter: FilterMode.Nearest, mipmap: MipmapMode.None };
+
+// alla tiles i alla lager, i samma ordning som i Tiled. Varje tile är en
+// bit av tileset-bilden (sprite) och en position på kartan (transform)
+const buildTiles = () => {
+  const sprites = [];
+  const transforms = [];
+  const tileScale = TILE_SIZE / WORLD.tileWidth;
+
+  for (const layer of WORLD.layers) {
+    for (let i = 0; i < layer.length; i++) {
+      const index = layer[i];
+      if (index < 0) continue;
+
+      sprites.push(
+        Skia.XYWHRect(
+          (index % WORLD.columns) * WORLD.tileWidth,
+          Math.floor(index / WORLD.columns) * WORLD.tileHeight,
+          WORLD.tileWidth,
+          WORLD.tileHeight,
+        ),
+      );
+      transforms.push(
+        Skia.RSXform(
+          tileScale,
+          0,
+          (i % MAP_WIDTH) * TILE_SIZE,
+          Math.floor(i / MAP_WIDTH) * TILE_SIZE,
+        ),
+      );
+    }
+  }
+
+  return { sprites, transforms };
+};
 
 type TileMapProps = {
   // spelarens position i pixlar, animeras av usePlayerWalk
@@ -80,6 +108,11 @@ export const TileMap = ({
   const scale = useSharedValue(START_SCALE);
 
   const centered = useRef(false);
+
+  // hela kartan ritas med ett enda anrop i Skia, i stället för en vy per
+  // tile, vilket både laddar snabbare och tar mycket mindre minne
+  const tileset = useImage(TILESET_IMAGE);
+  const tiles = useMemo(() => buildTiles(), []);
 
   const handleLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -155,6 +188,13 @@ export const TileMap = ({
     return Gesture.Race(tap, Gesture.Simultaneous(pan, pinch));
   }, [onTileTap, offsetX, offsetY, scale, viewWidth, viewHeight]);
 
+  // samma förflyttning och zoom som mapStyle, fast för Skia
+  const canvasTransform = useDerivedValue(() => [
+    { translateX: offsetX.get() },
+    { translateY: offsetY.get() },
+    { scale: scale.get() },
+  ]);
+
   const mapStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: offsetX.get() },
@@ -170,9 +210,20 @@ export const TileMap = ({
   return (
     <GestureDetector gesture={gesture}>
       <View style={tileStyles.viewport} onLayout={handleLayout}>
-        <Animated.View style={[tileStyles.map, mapStyle]}>
-          <Tiles />
+        <Canvas style={StyleSheet.absoluteFill}>
+          <Group transform={canvasTransform}>
+            <Atlas
+              image={tileset}
+              sprites={tiles.sprites}
+              transforms={tiles.transforms}
+              sampling={PIXEL_SAMPLING}
+              antiAlias={false}
+            />
+          </Group>
+        </Canvas>
 
+        {/* spelare och målmarkör ligger ovanpå kartan med samma transform */}
+        <Animated.View style={[tileStyles.map, mapStyle]} pointerEvents="none">
           {target && (
             <View
               style={[

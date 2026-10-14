@@ -9,7 +9,7 @@ Appen är för den som vill ha lite extra motivation att röra på sig: ju mer d
 ### Skärmar
 
 - **Gathering**: välj en aktivitet och ett recept och samla resurser för dina steg.
-- **Map**: en tilemap som går att panorera och pinch-zooma. Tryck på en ruta så går spelaren dit runt hinder som vatten, sten och träd. Positionen sparas.
+- **Map**: en tilemap (ritad i Tiled) som går att panorera och pinch-zooma. Tryck på en ruta så går spelaren dit runt hinder som vatten, sten och träd. Positionen sparas.
 - **Crafting**: gör föremål av resurserna.
 - **Inventory**: visar resurser och craftade föremål. Tryck på ett föremål för att öppna detaljskärmen.
 - **Settings**: lägg till steg manuellt (för test i simulator) och nollställ framsteg.
@@ -31,6 +31,20 @@ npx expo start
 Skanna QR-koden som visas i terminalen: med kameran på iOS och i Expo Go-appen på Android. Telefonen och datorn måste vara på samma nätverk.
 
 Stegräknaren fungerar bara på en riktig telefon. I simulatorn kan du lägga till steg under **Settings**.
+
+## Rita kartor
+
+Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i `app/assets/maps/world.json`. Appen läser filen direkt, så det räcker att spara i Tiled.
+
+1. Öppna `app/assets/maps/world.json` i Tiled.
+2. Måla i lagret `ground` (mark) och `decor` (träd, buskar m.m. ovanpå marken). Lagren ritas i samma ordning som i Tiled.
+3. Rutor som inte går att gå på har en bool-property `blocked = true` på tilen i tilesetet (Tileset-panelen → markera tile → Custom Properties). Det räcker att någon tile på en ruta, i något lager, är `blocked`.
+4. Spelaren startar på punkten som heter `spawn` i objektlagret `objects`.
+5. Spara som JSON (`.json`, inte `.tmj`, eftersom Metro bara kan läsa in `.json`). Tilesetet måste vara inbäddat i kartan (*Embed tileset*).
+
+Ny karta: Orthogonal, tile layer format CSV, tile size 16×16, och ett inbäddat tileset utan spacing/margin.
+
+Tilesetet är [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0) och ligger i `app/assets/maps/tileset.png`. Både Tiled och appen använder samma bild; appen förstorar pixlarna utan utsmetning.
 
 ## Använda RN-komponenter
 
@@ -65,6 +79,7 @@ Navigering sker med **Expo Router** (filbaserad routing i `src/app/`).
 | `jotai`                                     | Global state (atoms) för stegbank, resurser, crafting och spelarnivå. |
 | `react-native-gesture-handler`              | Pan-, pinch- och tryckgester på kartan.                               |
 | `react-native-reanimated`                   | Animerar kartans zoom/förflyttning och spelarens gång på UI-tråden.   |
+| `@shopify/react-native-skia`                | Ritar hela kartan i en canvas med tiles från tilesetet.               |
 
 ## Uppfyllda krav
 

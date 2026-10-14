@@ -1,69 +1,23 @@
-import { colors } from "@/styles/main";
+import { loadTiledMap, Point } from "./tiled";
 
+export type { Point };
+
+// storleken en ruta ritas i på skärmen, oberoende av tile-storleken i Tiled
 export const TILE_SIZE = 32;
 
-export type Tile = "grass" | "path" | "water" | "stone" | "tree";
+// rita om kartan i Tiled, se README
+export const WORLD = loadTiledMap(require("@assets/maps/world.json"));
+// samma tileset som i Tiled
+export const TILESET_IMAGE = require("@assets/maps/tileset.png");
 
-export type Point = { x: number; y: number };
+export const MAP_WIDTH = WORLD.width;
+export const MAP_HEIGHT = WORLD.height;
 
-const TILE_CHARS: Record<string, Tile> = {
-  ".": "grass",
-  "=": "path",
-  "~": "water",
-  "#": "stone",
-  T: "tree",
-};
-
-// ett tecken per ruta, se TILE_CHARS
-const MAP_ROWS = [
-  "TTTTTTTTTTTTTTTTTTTTTTTT",
-  "T......TT.........~~~~TT",
-  "T..==........T....~~~~~T",
-  "T...=....#.......~~~~~~T",
-  "T...=...###.......~~~~.T",
-  "T...=....#..T.....=....T",
-  "T...======........=..T.T",
-  "T.TT.....=........=....T",
-  "T.TT.....=....~~~~=~~..T",
-  "T.......#=....~~~~=~~..T",
-  "T.......#=........=....T",
-  "T....T...=====.====....T",
-  "T.............=........T",
-  "T..~~~........=...TT...T",
-  "T.~~~~~.......=...TT...T",
-  "T.~~~~~...##..=........T",
-  "T..~~~....##..=====....T",
-  "T..............T..=....T",
-  "T....TT...........=..#.T",
-  "T....TT....#......=..#.T",
-  "T..........#......=....T",
-  "T.......T.........=....T",
-  "T......................T",
-  "TTTTTTTTTTTTTTTTTTTTTTTT",
-];
-
-export const MAP: Tile[][] = MAP_ROWS.map((row) =>
-  [...row].map((char) => TILE_CHARS[char]),
-);
-
-export const MAP_WIDTH = MAP[0].length;
-export const MAP_HEIGHT = MAP.length;
-
-export const START_POSITION: Point = { x: 4, y: 3 };
-
-export const TILE_COLORS: Record<Tile, string> = {
-  grass: "#4d6b3a",
-  path: colors.wood,
-  water: "#3b5f7d",
-  stone: colors.stone,
-  tree: "#2c4425",
-};
-
-const BLOCKING: Tile[] = ["water", "stone", "tree"];
+export const START_POSITION: Point = WORLD.spawn;
 
 export const isWalkable = ({ x, y }: Point): boolean => {
   if (x < 0 || y < 0 || x >= MAP_WIDTH || y >= MAP_HEIGHT) return false;
-  return !BLOCKING.includes(MAP[y][x]);
+  return !WORLD.blocked[y * MAP_WIDTH + x];
 };
 
 const DIRECTIONS: Point[] = [
@@ -82,19 +36,21 @@ export const findPath = (from: Point, to: Point): Point[] | null => {
   const cameFrom = new Map<number, Point | null>([[key(from), null]]);
   const queue: Point[] = [from];
 
-  while (queue.length > 0) {
-    const current = queue.shift()!;
+  // läser med ett index i stället för queue.shift(), som flyttar om hela
+  // arrayen och blir långsamt på stora kartor
+  for (let head = 0; head < queue.length; head++) {
+    const current = queue[head];
 
     if (current.x === to.x && current.y === to.y) {
       const path: Point[] = [];
       let step: Point | null = current;
 
       while (step && key(step) !== key(from)) {
-        path.unshift(step);
+        path.push(step);
         step = cameFrom.get(key(step)) ?? null;
       }
 
-      return path;
+      return path.reverse();
     }
 
     for (const dir of DIRECTIONS) {
