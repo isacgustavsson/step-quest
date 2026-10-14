@@ -33,14 +33,15 @@ Stegräknaren fungerar bara på en riktig telefon. I simulatorn kan du lägga ti
 
 ## Använda RN-komponenter
 
-| Komponent    | Används till                                                       |
-| ------------ | ------------------------------------------------------------------ |
-| `View`       | Layout och behållare för alla skärmar, kort och rader.             |
-| `Text`       | All text i appen, med pixelfonten `monogram`.                      |
-| `Pressable`  | Knappar: aktiviteter, recept, +/−, craft/gather, inventory-rutor.  |
-| `ScrollView` | Gör gathering-, crafting- och inventory-skärmarna scrollbara.      |
-| `TextInput`  | Fält i Settings för att mata in antal steg att lägga till.         |
-| `Modal`      | Receptmodalen med ikon, beskrivning, kostnad, XP och val av antal. |
+| Komponent              | Används till                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `View`                 | Layout och behållare för alla skärmar, kort och rader.                        |
+| `Text`                 | All text i appen, med pixelfonten `monogram`.                                 |
+| `Pressable`            | Knappar: aktiviteter, recept, +/−, craft/gather, inventory-rutor.             |
+| `ScrollView`           | Gör gathering-, crafting- och inventory-skärmarna scrollbara.                 |
+| `TextInput`            | Fält i Settings för antal steg att lägga till, och för antal i receptmodalen. |
+| `Modal`                | Receptmodalen med ikon, beskrivning, kostnad, XP och val av antal.            |
+| `KeyboardAvoidingView` | Skjuter upp receptmodalen så att tangentbordet inte täcker den.               |
 
 `Alert` och `Keyboard` från `react-native` används också (meddelanden vid lyckad/misslyckad handling och för att stänga tangentbordet), men de är API:er och inte komponenter.
 
