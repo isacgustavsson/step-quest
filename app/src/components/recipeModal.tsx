@@ -95,7 +95,7 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
     >
       <View style={[styles.rowBetween]}>
         <Text style={[styles.text, { fontSize: 32 }]}>{recipe.label}</Text>
-        <Pressable onPress={onClose}>
+        <Pressable onPress={onClose} hitSlop={20}>
           <Text style={[styles.text, { color: colors.textMuted }]}>x</Text>
         </Pressable>
       </View>
