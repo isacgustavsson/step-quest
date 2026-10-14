@@ -1,97 +1,120 @@
 import { HeaderComponent } from "@/components/header";
 import { colors } from "@/styles/main";
-import { Image } from "expo-image";
+import { Image, ImageSource } from "expo-image";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const icons = {
-  home: require("@assets/icons/home.png"),
-  settings: require("@assets/icons/settings.png"),
-  crafting: require("@assets/icons/anvil.png"),
-  inventory: require("@assets/icons/chest.png"),
+type Tab = {
+  name: string;
+  title: string;
+  icon: ImageSource | number;
+  size?: number;
+  // flyttar fliken i sidled för att den ska se jämnt placerad ut
+  offsetX?: number;
 };
 
+const TABS: Tab[] = [
+  {
+    name: "index",
+    title: "Home",
+    icon: require("@assets/icons/home.png"),
+  },
+  {
+    name: "crafting",
+    title: "Crafting",
+    icon: require("@assets/icons/anvil.png"),
+    offsetX: -6,
+  },
+  {
+    name: "inventory",
+    title: "Inventory",
+    icon: require("@assets/icons/chest.png"),
+  },
+  {
+    name: "settings",
+    title: "Settings",
+    icon: require("@assets/icons/settings.png"),
+  },
+];
+
+type TabIconProps = {
+  source: ImageSource | number;
+  size?: number;
+  focused: boolean;
+};
+
+const ICON_SIZE = 32;
+// höjden på själva tryckytan, utan säkerhetsmarginalen längst ner
+const TAB_BAR_HEIGHT = 64;
+// standardhöjden som innehållet var placerat efter innan raden blev högre
+const DEFAULT_TAB_BAR_HEIGHT = 64;
+
+const ITEM_STYLE = {
+  alignItems: "center",
+  justifyContent: "center",
+  // den extra höjden läggs ovanför, så att ikon och text ligger kvar
+  paddingTop: 14 + (TAB_BAR_HEIGHT - DEFAULT_TAB_BAR_HEIGHT),
+} as const;
+
+// pixel-ikonerna går inte att färga, så aktiv flik markeras med opacity
+const TabIcon = ({ source, size = ICON_SIZE, focused }: TabIconProps) => (
+  <Image
+    source={source}
+    style={{ width: size, height: size, opacity: focused ? 1 : 0.5 }}
+  />
+);
+
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <>
-      <Tabs
-        screenOptions={{
-          header: () => <HeaderComponent />,
-          headerTitleStyle: { color: "#fff" },
+    <Tabs
+      screenOptions={{
+        header: () => <HeaderComponent />,
 
-          tabBarStyle: {
-            backgroundColor: colors.background,
-          },
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          // en egen höjd ersätter standardhöjden inklusive marginalen,
+          // så insets.bottom måste läggas till för hand
+          height: TAB_BAR_HEIGHT + insets.bottom,
+          // borderTopColor: colors.cardBorder,
+        },
 
-          tabBarItemStyle: {
-            alignItems: "center",
-            justifyContent: "center",
-            paddingTop: 12,
-          },
+        tabBarIconStyle: {
+          // paddingBottom ligger innanför höjden, så den läggs till för att
+          // ikonen inte ska tryckas ner mot texten
+          width: ICON_SIZE,
+          height: ICON_SIZE + 8,
+          paddingBottom: 8,
+        },
 
-          tabBarIconStyle: {
-            width: 32,
-            height: 32,
-            paddingBottom: 12,
-          },
+        tabBarLabelStyle: {
+          fontSize: 14,
+          fontFamily: "monogram",
+        },
 
-          tabBarLabelStyle: {
-            fontSize: 18,
-            fontFamily: "monogram",
-          },
-
-          tabBarActiveTintColor: colors.text,
-          tabBarInactiveTintColor: colors.textMuted,
-        }}
-      >
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textMuted,
+      }}
+    >
+      {TABS.map((tab) => (
         <Tabs.Screen
-          name="index"
+          key={tab.name}
+          name={tab.name}
           options={{
-            title: "Home",
-            tabBarIcon: () => (
-              <Image source={icons.home} style={{ width: 36, height: 36 }} />
+            title: tab.title,
+            // sätts per flik i stället för i screenOptions, eftersom en
+            // tabBarItemStyle här annars ersätter den gemensamma helt
+            tabBarItemStyle: [
+              ITEM_STYLE,
+              { transform: [{ translateX: tab.offsetX ?? 0 }] },
+            ],
+            tabBarIcon: ({ focused }) => (
+              <TabIcon source={tab.icon} size={tab.size} focused={focused} />
             ),
           }}
         />
-
-        <Tabs.Screen
-          name="crafting"
-          options={{
-            title: "Crafting",
-            tabBarIcon: () => (
-              <Image
-                source={icons.crafting}
-                style={{ width: 32, height: 32 }}
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="inventory"
-          options={{
-            title: "Inventory",
-            tabBarIcon: () => (
-              <Image
-                source={icons.inventory}
-                style={{ width: 32, height: 32 }}
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="settings"
-          options={{
-            title: "Settings",
-            tabBarIcon: () => (
-              <Image
-                source={icons.settings}
-                style={{ width: 32, height: 32 }}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </>
+      ))}
+    </Tabs>
   );
 }
