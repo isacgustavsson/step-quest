@@ -7,7 +7,6 @@ import {
   WORLD,
 } from "@/map/tilemap";
 import { colors } from "@/styles/main";
-import { Image } from "expo-image";
 import {
   Atlas,
   Canvas,
@@ -17,6 +16,7 @@ import {
   Skia,
   useImage,
 } from "@shopify/react-native-skia";
+import { Image } from "expo-image";
 import { useMemo, useRef } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -30,7 +30,7 @@ import Animated, {
 const MAP_PIXEL_WIDTH = MAP_WIDTH * TILE_SIZE;
 const MAP_PIXEL_HEIGHT = MAP_HEIGHT * TILE_SIZE;
 
-const MIN_SCALE = 0.15;
+const MIN_SCALE = 0.75;
 const MAX_SCALE = 3;
 const START_SCALE = 1.5;
 // hur långt kartan får dras förbi kanten
