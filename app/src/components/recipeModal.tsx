@@ -1,4 +1,4 @@
-import { Recipe } from "@/components/actionCard";
+import { getRecipeIcon, Recipe } from "@/components/actionCard";
 import { RESOURCE_ICONS } from "@/state/resourceIcons";
 import {
   GATHER_GAIN,
@@ -75,8 +75,7 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
   const resources = useAtomValue(resourcesAtom);
   const bankedSteps = useAtomValue(bankedStepsAtom);
 
-  const icon =
-    recipe.icon ?? RESOURCE_ICONS[recipe.resourceKey ?? recipe.label];
+  const icon = getRecipeIcon(recipe);
   const isGathering = recipe.resourceKey !== undefined;
 
   const parsed = parseInt(input, 10);

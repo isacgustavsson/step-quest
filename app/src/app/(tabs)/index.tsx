@@ -8,7 +8,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView style={{ width: "100%" }}>
         <ActionCard
           title="resources"
           activities={[

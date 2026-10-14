@@ -8,7 +8,7 @@ export default function Crafting() {
 
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView style={{ width: "100%" }}>
         <ActionCard
           title="crafting"
           activities={[

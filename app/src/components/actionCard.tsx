@@ -1,5 +1,6 @@
 import { RecipeModal } from "@/components/recipeModal";
 import { playerLevelAtom } from "@/state/player";
+import { RESOURCE_ICONS } from "@/state/resourceIcons";
 import { colors, styles } from "@/styles/main";
 import { Image, ImageSource } from "expo-image";
 import { useAtomValue } from "jotai";
@@ -26,6 +27,9 @@ export type Activity = {
   recipes: Recipe[];
 };
 
+export const getRecipeIcon = (recipe: Recipe) =>
+  recipe.icon ?? RESOURCE_ICONS[recipe.resourceKey ?? recipe.label];
+
 export type ActionCardProps = {
   title: string;
   activities: Activity[];
@@ -35,7 +39,6 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
 
-  const [isExpanded, setIsExpanded] = useState(false);
   const playerLevel = useAtomValue(playerLevelAtom);
 
   const category = activities[selectedCategory];
@@ -88,95 +91,26 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
           </View>
         </View>
 
-        <View
-          style={[
-            isExpanded ? styles.card : null,
-            {
-              borderColor: isExpanded ? colors.cardBorder : "null",
-            },
-          ]}
-        >
-          <View>
-            <Pressable
-              style={[styles.rowBetween]}
-              onPress={() => setIsExpanded((prev) => !prev)}
-            >
-              <View
-                style={[
-                  styles.rowBetween,
-                  {
-                    marginBottom: isExpanded ? 12 : 8,
-                    marginTop: isExpanded ? 12 : 8,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.text,
-                    {
-                      color: isExpanded ? colors.text : colors.textMuted,
-                      fontSize: 28,
-                    },
-                  ]}
-                >
-                  Recipes
-                </Text>
-
-                <Text
-                  style={[
-                    styles.text,
-                    {
-                      fontSize: 12,
-                      color: isExpanded ? colors.text : colors.textMuted,
-                    },
-                  ]}
-                >
-                  {isExpanded ? "▲" : "▼"}
-                </Text>
-              </View>
-            </Pressable>
-            <ListDivider mt={0} />
-          </View>
-
-          <View>
-            {isExpanded && (
-              <View style={{ marginTop: 12, marginBottom: 12 }}>
-                {category.recipes.map((item, index) => (
-                  <View key={item.label}>
-                    {playerLevel < item.levelUnlocked ? (
-                      <View style={styles.rowBetween}>
-                        <Text
-                          style={[styles.text, { color: colors.textMuted }]}
-                        >
-                          locked
-                        </Text>
-                        <Text
-                          style={[styles.text, { color: colors.textMuted }]}
-                        >
-                          required level: {item.levelUnlocked}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Pressable
-                        style={styles.rowBetween}
-                        onPress={() => setOpenRecipe(item)}
-                      >
-                        <Text style={styles.text}>{item.label}</Text>
-                        <Text
-                          style={[styles.text, { color: colors.textMuted }]}
-                        >
-                          <Text>open</Text>
-                        </Text>
-                      </Pressable>
-                    )}
-
-                    {index < category.recipes.length - 1 && (
-                      <ListDivider mt={32} mb={32} />
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
+        <View style={{ width: "100%" }}>
+          <Text style={[styles.text, { marginBottom: 16 }]}>Recipes</Text>
+          <ListDivider />
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+              alignSelf: "flex-start",
+              paddingVertical: 12,
+            }}
+          >
+            {category.recipes.map((recipe) => (
+              <RecipeTile
+                key={recipe.label}
+                recipe={recipe}
+                locked={playerLevel < recipe.levelUnlocked}
+                onPress={() => setOpenRecipe(recipe)}
+              />
+            ))}
           </View>
         </View>
       </View>
@@ -187,6 +121,54 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
         onClose={() => setOpenRecipe(null)}
       />
     </>
+  );
+};
+
+type RecipeTileProps = {
+  recipe: Recipe;
+  locked: boolean;
+  onPress: () => void;
+};
+
+const RecipeTile = ({ recipe, locked, onPress }: RecipeTileProps) => {
+  const icon = getRecipeIcon(recipe);
+
+  return (
+    <Pressable
+      disabled={locked}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tile,
+        { gap: 4, borderColor: colors.cardBorder },
+        pressed && styles.buttonSelected,
+      ]}
+    >
+      <View style={{ width: 42, height: 42, opacity: locked ? 0.3 : 1 }}>
+        {icon && (
+          <Image
+            source={icon}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+          />
+        )}
+      </View>
+
+      <Text
+        style={[
+          styles.text,
+          { fontSize: 14, color: locked ? colors.textFaint : colors.text },
+        ]}
+        numberOfLines={1}
+      >
+        {recipe.label}
+      </Text>
+
+      {locked && (
+        <Text style={[styles.text, { fontSize: 14, color: colors.textMuted }]}>
+          lvl {recipe.levelUnlocked}
+        </Text>
+      )}
+    </Pressable>
   );
 };
 
