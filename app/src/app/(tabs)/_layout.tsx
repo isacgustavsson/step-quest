@@ -26,6 +26,11 @@ const TABS: Tab[] = [
     offsetX: -6,
   },
   {
+    name: "map",
+    title: "Map",
+    icon: require("@assets/icons/player.png"),
+  },
+  {
     name: "inventory",
     title: "Inventory",
     icon: require("@assets/icons/chest.png"),
@@ -44,19 +49,15 @@ type TabIconProps = {
 };
 
 const ICON_SIZE = 32;
-// höjden på själva tryckytan, utan säkerhetsmarginalen längst ner
 const TAB_BAR_HEIGHT = 64;
-// standardhöjden som innehållet var placerat efter innan raden blev högre
 const DEFAULT_TAB_BAR_HEIGHT = 64;
 
 const ITEM_STYLE = {
   alignItems: "center",
   justifyContent: "center",
-  // den extra höjden läggs ovanför, så att ikon och text ligger kvar
   paddingTop: 14 + (TAB_BAR_HEIGHT - DEFAULT_TAB_BAR_HEIGHT),
 } as const;
 
-// pixel-ikonerna går inte att färga, så aktiv flik markeras med opacity
 const TabIcon = ({ source, size = ICON_SIZE, focused }: TabIconProps) => (
   <Image
     source={source}
@@ -74,15 +75,10 @@ export default function TabLayout() {
 
         tabBarStyle: {
           backgroundColor: colors.background,
-          // en egen höjd ersätter standardhöjden inklusive marginalen,
-          // så insets.bottom måste läggas till för hand
           height: TAB_BAR_HEIGHT + insets.bottom,
-          // borderTopColor: colors.cardBorder,
         },
 
         tabBarIconStyle: {
-          // paddingBottom ligger innanför höjden, så den läggs till för att
-          // ikonen inte ska tryckas ner mot texten
           width: ICON_SIZE,
           height: ICON_SIZE + 8,
           paddingBottom: 8,
@@ -103,8 +99,6 @@ export default function TabLayout() {
           name={tab.name}
           options={{
             title: tab.title,
-            // sätts per flik i stället för i screenOptions, eftersom en
-            // tabBarItemStyle här annars ersätter den gemensamma helt
             tabBarItemStyle: [
               ITEM_STYLE,
               { transform: [{ translateX: tab.offsetX ?? 0 }] },

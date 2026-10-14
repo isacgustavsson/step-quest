@@ -9,6 +9,7 @@ Appen är för den som vill ha lite extra motivation att röra på sig: ju mer d
 ### Skärmar
 
 - **Gathering**: välj en aktivitet och ett recept och samla resurser för dina steg.
+- **Map**: en tilemap som går att panorera och pinch-zooma. Tryck på en ruta så går spelaren dit runt hinder som vatten, sten och träd. Positionen sparas.
 - **Crafting**: gör föremål av resurserna.
 - **Inventory**: visar resurser och craftade föremål. Tryck på ett föremål för att öppna detaljskärmen.
 - **Settings**: lägg till steg manuellt (för test i simulator) och nollställ framsteg.
@@ -60,8 +61,10 @@ Navigering sker med **Expo Router** (filbaserad routing i `src/app/`).
 
 | Paket                                       | Används till                                                          |
 | ------------------------------------------- | --------------------------------------------------------------------- |
-| `@react-native-async-storage/async-storage` | Sparar stegbank, resurser, inventory och XP mellan sessioner.         |
+| `@react-native-async-storage/async-storage` | Sparar stegbank, resurser, inventory, XP och kartposition.            |
 | `jotai`                                     | Global state (atoms) för stegbank, resurser, crafting och spelarnivå. |
+| `react-native-gesture-handler`              | Pan-, pinch- och tryckgester på kartan.                               |
+| `react-native-reanimated`                   | Animerar kartans zoom/förflyttning och spelarens gång på UI-tråden.   |
 
 ## Uppfyllda krav
 
