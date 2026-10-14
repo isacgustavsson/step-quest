@@ -34,7 +34,7 @@ export default function Settings() {
   return (
     <>
       <View style={styles.container}>
-        <View style={[styles.card, { alignItems: "center" }]}>
+        <View style={[styles.card, { alignItems: "center", borderWidth: 0 }]}>
           <Text style={styles.text}>Settings</Text>
 
           <View style={{ width: "100%", height: 200, overflow: "hidden" }}>
