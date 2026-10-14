@@ -50,7 +50,16 @@ export default function Settings() {
               <Text style={[styles.text, { paddingRight: 12 }]}>add steps</Text>
 
               <TextInput
-                style={[styles.input, styles.button]}
+                style={[
+                  styles.input,
+                  styles.button,
+                  {
+                    // padding: 10 från styles.input lämnar bara 12px för texten i en 32px hög knapp
+                    paddingVertical: 0,
+                    textAlignVertical: "center",
+                    includeFontPadding: false,
+                  },
+                ]}
                 value={input}
                 onChangeText={setInput}
                 placeholder={isFocused ? "" : "amount.."}
