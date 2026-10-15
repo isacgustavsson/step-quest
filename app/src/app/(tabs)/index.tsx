@@ -5,19 +5,26 @@ import { RESOURCES } from "@/data/resources";
 import { usePlayerWalk } from "@/hooks/usePlayerWalk";
 import { useResourceActions } from "@/hooks/useResourceActions";
 import { footTiles, getNodeAtTap, Point, ResourceNode } from "@/map/tilemap";
-import { playerPositionAtom } from "@/state/map";
+import { currentMapAtom, playerPositionAtom } from "@/state/map";
+import {
+  depletedNodesAtom,
+  depletedOnMapAtom,
+  nodeKey,
+  pruneNodesAtom,
+} from "@/state/nodes";
 import { playerLevelAtom } from "@/state/player";
-import { depletedNodesAtom, isDepleted, pruneNodesAtom } from "@/state/nodes";
 import { colors } from "@/styles/main";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, View } from "react-native";
 
 export default function MapScreen() {
   const { playerX, playerY, walking, target, walkTo, walkNextTo } =
     usePlayerWalk();
   const { handleGatherNode } = useResourceActions();
+  const map = useAtomValue(currentMapAtom);
   const depletedNodes = useAtomValue(depletedNodesAtom);
+  const depleted = useAtomValue(depletedOnMapAtom);
   const pruneNodes = useSetAtom(pruneNodesAtom);
   const playerLevel = useAtomValue(playerLevelAtom);
   const playerPosition = useAtomValue(playerPositionAtom);
@@ -38,21 +45,14 @@ export default function MapScreen() {
     return () => clearTimeout(timeout);
   }, [depletedNodes, playerPosition, pruneNodes]);
 
-  const depleted = useMemo(
-    () => new Set(Object.keys(depletedNodes).map(Number)),
-    [depletedNodes],
-  );
-
   const openGather = useCallback(
     (node: ResourceNode) => {
       const recipe = GATHER_RECIPES[node.resource];
       const { label } = RESOURCES[node.resource];
+      const respawnAt = depletedNodes[nodeKey(map.id, node.id)];
 
-      if (isDepleted(depletedNodes, node)) {
-        const seconds = Math.max(
-          1,
-          Math.ceil((depletedNodes[node.id] - Date.now()) / 1000),
-        );
+      if (respawnAt !== undefined) {
+        const seconds = Math.max(1, Math.ceil((respawnAt - Date.now()) / 1000));
         Alert.alert(label, `grows back in ${seconds}s`);
         return;
       }
@@ -64,7 +64,7 @@ export default function MapScreen() {
 
       setOpenNode(node);
     },
-    [depletedNodes, playerLevel],
+    [map, depletedNodes, playerLevel],
   );
 
   // ett objekt på rutan, foten eller resten av bilden: gå fram till det och
@@ -72,19 +72,22 @@ export default function MapScreen() {
   // till rutan
   const handleTileTap = useCallback(
     (tile: Point) => {
-      const node = getNodeAtTap(tile, depleted);
+      const node = getNodeAtTap(map, tile, depleted);
       if (node) {
         walkNextTo(footTiles(node), () => openGather(node));
       } else {
         walkTo(tile);
       }
     },
-    [walkTo, walkNextTo, openGather, depleted],
+    [map, walkTo, walkNextTo, openGather, depleted],
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* en ny karta får en ny TileMap, som centreras på spelaren igen */}
       <TileMap
+        key={map.id}
+        map={map}
         playerX={playerX}
         playerY={playerY}
         walking={walking}

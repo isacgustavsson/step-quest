@@ -1,14 +1,11 @@
 import {
+  GameMap,
   getTilesetImage,
-  MAP_HEIGHT,
-  MAP_WIDTH,
   MapObject,
   Point,
-  RESOURCE_NODES,
   TILE_SIZE,
-  WORLD,
 } from "@/map/tilemap";
-import { PlacedTile, tileSprite } from "@/map/tiled";
+import { PlacedTile, tileSprite, World } from "@/map/tiled";
 import { colors } from "@/styles/main";
 import {
   Atlas,
@@ -78,9 +75,6 @@ const PLAYER_TRANSFORMS = [Skia.RSXform(1, 0, 0, 0)];
 
 const TARGET_BORDER = 2;
 
-const MAP_PIXEL_WIDTH = MAP_WIDTH * TILE_SIZE;
-const MAP_PIXEL_HEIGHT = MAP_HEIGHT * TILE_SIZE;
-
 const MIN_SCALE = 0.75;
 const MAX_SCALE = 3;
 const START_SCALE = 1.5;
@@ -112,18 +106,21 @@ type TileBatch = {
   transforms: SkRSXform[];
 };
 
-// kartpixlar i Tiled → pixlar på skärmen
-const MAP_SCALE = TILE_SIZE / WORLD.tileSize;
-
 // lägger tiles i batcher per bild. Med keepOrder blir det en ny batch
 // varje gång bilden byts, så att ordningen behålls även mellan bilder
 // (behövs för djupsorterade objekt som överlappar varandra)
-const batchTiles = (tiles: PlacedTile[], keepOrder = false): TileBatch[] => {
+const batchTiles = (
+  world: World,
+  tiles: PlacedTile[],
+  keepOrder = false,
+): TileBatch[] => {
   const batches: TileBatch[] = [];
   const byImage = new Map<string, TileBatch>();
+  // kartpixlar i Tiled → pixlar på skärmen
+  const mapScale = TILE_SIZE / world.tileSize;
 
   for (const { tileset, tile, px, py, width } of tiles) {
-    const sprite = tileSprite(WORLD.tilesets[tileset], tile);
+    const sprite = tileSprite(world.tilesets[tileset], tile);
 
     let batch = keepOrder ? batches.at(-1) : byImage.get(sprite.image);
     if (!batch || batch.image !== sprite.image) {
@@ -134,7 +131,7 @@ const batchTiles = (tiles: PlacedTile[], keepOrder = false): TileBatch[] => {
 
     // ett objekt kan vara skalat i Tiled, men Atlas skalar lika i båda
     // led, så bredden får bestämma
-    const scale = (width / sprite.width) * MAP_SCALE;
+    const scale = (width / sprite.width) * mapScale;
 
     batch.sprites.push(
       Skia.XYWHRect(sprite.x, sprite.y, sprite.width, sprite.height),
@@ -146,8 +143,8 @@ const batchTiles = (tiles: PlacedTile[], keepOrder = false): TileBatch[] => {
       Skia.RSXform(
         scale,
         0,
-        px * MAP_SCALE,
-        py * MAP_SCALE - sprite.height * scale,
+        px * mapScale,
+        py * mapScale - sprite.height * scale,
       ),
     );
   }
@@ -157,17 +154,18 @@ const batchTiles = (tiles: PlacedTile[], keepOrder = false): TileBatch[] => {
 
 // alla tile-lager, i samma ordning som i Tiled. Tiles större än kartans
 // rutor ritas uppåt från sin ruta, precis som i Tiled
-const buildTiles = () =>
-  WORLD.layers.flatMap((layer) =>
+const buildTiles = (world: World) =>
+  world.layers.flatMap((layer) =>
     batchTiles(
+      world,
       layer.flatMap((ref, i) => {
         if (!ref) return [];
-        const sprite = tileSprite(WORLD.tilesets[ref.tileset], ref.tile);
+        const sprite = tileSprite(world.tilesets[ref.tileset], ref.tile);
         return [
           {
             ...ref,
-            px: (i % MAP_WIDTH) * WORLD.tileSize,
-            py: (Math.floor(i / MAP_WIDTH) + 1) * WORLD.tileSize,
+            px: (i % world.width) * world.tileSize,
+            py: (Math.floor(i / world.width) + 1) * world.tileSize,
             width: sprite.width,
             height: sprite.height,
           },
@@ -178,25 +176,25 @@ const buildTiles = () =>
 
 // alla bilder som kartan använder, både vanliga tilesets och tiles i
 // collection-tilesets
-const IMAGE_NAMES = [
+const imageNames = (world: World) => [
   ...new Set(
-    WORLD.tilesets.flatMap((tileset) => [
+    world.tilesets.flatMap((tileset) => [
       ...(tileset.image ? [tileset.image] : []),
       ...Object.values(tileset.sprites).map((sprite) => sprite.image),
     ]),
   ),
 ];
 
-// laddar alla bilder en gång, så att en batch kan byta bild utan att
+// laddar kartans bilder en gång, så att en batch kan byta bild utan att
 // bilden laddas om
-const useTilesetImages = () => {
+const useTilesetImages = (world: World) => {
   const [images, setImages] = useState<Record<string, SkImage | null>>({});
 
   useEffect(() => {
     let cancelled = false;
 
     Promise.all(
-      IMAGE_NAMES.map(async (name) => {
+      imageNames(world).map(async (name) => {
         const source = getTilesetImage(name);
         if (!source) return [name, null] as const;
 
@@ -211,7 +209,7 @@ const useTilesetImages = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [world]);
 
   return images;
 };
@@ -245,6 +243,7 @@ const sortByDepth = (objects: MapObject[]) =>
   [...objects].sort((a, b) => a.y - b.y || a.x - b.x);
 
 type TileMapProps = {
+  map: GameMap;
   // spelarens position i pixlar, animeras av usePlayerWalk
   playerX: SharedValue<number>;
   playerY: SharedValue<number>;
@@ -256,6 +255,7 @@ type TileMapProps = {
 };
 
 export const TileMap = ({
+  map,
   playerX,
   playerY,
   walking,
@@ -271,8 +271,14 @@ export const TileMap = ({
 
   const centered = useRef(false);
 
-  const images = useTilesetImages();
-  const tiles = useMemo(() => buildTiles(), []);
+  // bara tal används i gesterna, så att inte hela kartan kopieras till
+  // UI-tråden
+  const { world, width: mapWidth, height: mapHeight } = map;
+  const mapPixelWidth = mapWidth * TILE_SIZE;
+  const mapPixelHeight = mapHeight * TILE_SIZE;
+
+  const images = useTilesetImages(world);
+  const tiles = useMemo(() => buildTiles(world), [world]);
 
   // raden spelaren står på. Skickas till JS bara när raden byts, så att
   // objekten kan delas upp i de som står bakom och framför spelaren
@@ -291,20 +297,21 @@ export const TileMap = ({
   const visibleObjects = useMemo(
     () =>
       sortByDepth([
-        ...WORLD.props,
-        ...RESOURCE_NODES.filter((node) => !depleted.has(node.id)),
+        ...world.props,
+        ...map.nodes.filter((node) => !depleted.has(node.id)),
       ]),
-    [depleted],
+    [world, map.nodes, depleted],
   );
 
   // golv ritas under spelaren och alla andra objekt, oavsett rad
   const floors = useMemo(
     () =>
       batchTiles(
+        world,
         visibleObjects.filter((o) => o.floor),
         true,
       ),
-    [visibleObjects],
+    [world, visibleObjects],
   );
 
   // objekt vars fot står under spelarens rad ritas över spelaren, resten under
@@ -313,15 +320,17 @@ export const TileMap = ({
 
     return {
       behind: batchTiles(
+        world,
         visible.filter((o) => o.y <= playerRow),
         true,
       ),
       front: batchTiles(
+        world,
         visible.filter((o) => o.y > playerRow),
         true,
       ),
     };
-  }, [visibleObjects, playerRow]);
+  }, [world, visibleObjects, playerRow]);
 
   const handleLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -346,14 +355,14 @@ export const TileMap = ({
         clampOffset(
           offsetX.get() + e.changeX,
           viewWidth.get(),
-          MAP_PIXEL_WIDTH * scale.get(),
+          mapPixelWidth * scale.get(),
         ),
       );
       offsetY.set(
         clampOffset(
           offsetY.get() + e.changeY,
           viewHeight.get(),
-          MAP_PIXEL_HEIGHT * scale.get(),
+          mapPixelHeight * scale.get(),
         ),
       );
     });
@@ -367,14 +376,14 @@ export const TileMap = ({
         clampOffset(
           e.focalX - (e.focalX - offsetX.get()) * ratio,
           viewWidth.get(),
-          MAP_PIXEL_WIDTH * next,
+          mapPixelWidth * next,
         ),
       );
       offsetY.set(
         clampOffset(
           e.focalY - (e.focalY - offsetY.get()) * ratio,
           viewHeight.get(),
-          MAP_PIXEL_HEIGHT * next,
+          mapPixelHeight * next,
         ),
       );
       scale.set(next);
@@ -389,13 +398,24 @@ export const TileMap = ({
         const x = Math.floor((e.x - offsetX.get()) / scale.get() / TILE_SIZE);
         const y = Math.floor((e.y - offsetY.get()) / scale.get() / TILE_SIZE);
 
-        if (x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT) {
+        if (x >= 0 && y >= 0 && x < mapWidth && y < mapHeight) {
           onTileTap({ x, y });
         }
       });
 
     return Gesture.Race(tap, Gesture.Simultaneous(pan, pinch));
-  }, [onTileTap, offsetX, offsetY, scale, viewWidth, viewHeight]);
+  }, [
+    mapWidth,
+    mapHeight,
+    mapPixelWidth,
+    mapPixelHeight,
+    onTileTap,
+    offsetX,
+    offsetY,
+    scale,
+    viewWidth,
+    viewHeight,
+  ]);
 
   // samma förflyttning och zoom som mapStyle, fast för Skia
   const canvasTransform = useDerivedValue(() => [

@@ -1,34 +1,48 @@
 import { GATHER_RECIPES } from "@/data/gathering";
 import { RESOURCES } from "@/data/resources";
-import { footTiles, RESOURCE_NODES, ResourceNode } from "@/map/tilemap";
+import { findMap } from "@/map/maps";
+import { footTiles, ResourceNode } from "@/map/tilemap";
 import { atom } from "jotai";
-import { playerPositionAtom } from "./map";
+import { currentMapAtom, playerPositionAtom } from "./map";
 import { playerLevelAtom } from "./player";
 import { GatherResult, gatherAtom } from "./resources";
 import { persistedAtom } from "./save";
 
-// objekt-id på kartan → tidpunkten (ms) då objektet växer tillbaka
-export const depletedNodesAtom = persistedAtom<Record<number, number>>(
+// objekt-id:n i Tiled är bara unika inom en karta, så kartans id är med
+export const nodeKey = (mapId: string, nodeId: number) => `${mapId}:${nodeId}`;
+
+const parseNodeKey = (key: string) => {
+  const split = key.lastIndexOf(":");
+  return { mapId: key.slice(0, split), nodeId: Number(key.slice(split + 1)) };
+};
+
+// nodeKey → tidpunkten (ms) då objektet växer tillbaka
+export const depletedNodesAtom = persistedAtom<Record<string, number>>(
   "depletedNodes",
   {},
 );
 
-// ett objekt är uttömt tills pruneNodesAtom har tagit bort det
-export const isDepleted = (
-  depleted: Record<number, number>,
-  node: ResourceNode,
-) => node.id in depleted;
+// id:n för uttömda objekt på kartan spelaren står på
+export const depletedOnMapAtom = atom((get) => {
+  const mapId = get(currentMapAtom).id;
+  const ids = new Set<number>();
 
-// id → objekt, för att hitta var ett uttömt objekt står
-const nodesById = new Map(RESOURCE_NODES.map((node) => [node.id, node]));
+  for (const key of Object.keys(get(depletedNodesAtom))) {
+    const parsed = parseNodeKey(key);
+    if (parsed.mapId === mapId) ids.add(parsed.nodeId);
+  }
+  return ids;
+});
 
-// samlar från ett objekt på kartan, som sedan är uttömt en stund
+// samlar från ett objekt på kartan spelaren står på, som sedan är uttömt
+// en stund. Ett objekt är uttömt tills pruneNodesAtom har tagit bort det
 export const gatherNodeAtom = atom(
   null,
   (get, set, node: ResourceNode): GatherResult => {
     const recipe = GATHER_RECIPES[node.resource];
+    const key = nodeKey(get(currentMapAtom).id, node.id);
 
-    if (isDepleted(get(depletedNodesAtom), node)) {
+    if (key in get(depletedNodesAtom)) {
       return {
         ok: false,
         reason: `the ${RESOURCES[node.resource].label} has not grown back`,
@@ -47,7 +61,7 @@ export const gatherNodeAtom = atom(
 
     set(depletedNodesAtom, {
       ...get(depletedNodesAtom),
-      [node.id]: Date.now() + recipe.respawnSeconds * 1000,
+      [key]: Date.now() + recipe.respawnSeconds * 1000,
     });
 
     return result;
@@ -62,14 +76,17 @@ export const pruneNodesAtom = atom(null, (get, set) => {
   const current = get(depletedNodesAtom);
 
   const next = Object.fromEntries(
-    Object.entries(current).filter(([id, respawnAt]) => {
-      const node = nodesById.get(Number(id));
+    Object.entries(current).filter(([key, respawnAt]) => {
+      const { mapId, nodeId } = parseNodeKey(key);
+      const node = findMap(mapId)?.nodesById.get(nodeId);
       // objekt som inte längre finns på kartan kan glömmas
       if (!node) return false;
 
-      const underPlayer = footTiles(node).some(
-        (tile) => tile.x === player.x && tile.y === player.y,
-      );
+      const underPlayer =
+        mapId === player.mapId &&
+        footTiles(node).some(
+          (tile) => tile.x === player.x && tile.y === player.y,
+        );
       return respawnAt > now || underPlayer;
     }),
   );

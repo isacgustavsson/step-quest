@@ -33,7 +33,9 @@ Stegräknaren fungerar bara på en riktig telefon. I simulatorn kan du lägga ti
 
 ## Rita kartor
 
-Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i `app/assets/maps/world-cainos.json`. Appen läser filen direkt, så det räcker att spara i Tiled. Vilken kartfil som laddas står överst i `app/src/map/tilemap.ts`; den äldre kartan med Kenney-grafik ligger kvar i `world.json`.
+Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i `app/assets/maps/world-cainos.json`. Appen läser filen direkt, så det räcker att spara i Tiled. Alla kartor och deras id:n står i `MAP_SOURCES` i `app/src/map/maps.ts`; den äldre kartan med Kenney-grafik ligger kvar i `world.json` men är inte registrerad.
+
+**Flera kartor.** En ny karta läggs till i `MAP_SOURCES` med ett eget id. Id:t sparas i spelarens position och i återväxten för resursobjekt, så det får inte ändras när kartan väl används. Spelaren byter karta med `enterMapAtom` i `app/src/state/map.ts`. Objekt-id:n i Tiled behöver bara vara unika inom en karta.
 
 1. Öppna `app/assets/maps/world-cainos.json` i Tiled.
 2. Måla i lagret `ground` (mark) och `decor` (låga saker som blommor och buskar ovanpå marken). Lagren ritas i samma ordning som i Tiled.

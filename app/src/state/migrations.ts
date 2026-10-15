@@ -54,6 +54,9 @@ const renameKeys = (record: Record<string, number>) =>
     ),
   );
 
+// version 0 hade bara en karta
+const V0_MAP_ID = "overworld";
+
 type V0 = {
   "stepBank:balance"?: number;
   "resources:all"?: Record<string, number>;
@@ -65,22 +68,28 @@ type V0 = {
 
 // MIGRATIONS[n] uppgraderar data från version n till n + 1
 const MIGRATIONS: Record<number, (data: any) => Record<string, unknown>> = {
-  // en nyckel per atom → en sparfil. Id i stället för namn, och ingen ikon
-  // i inventariet
+  // en nyckel per atom → en sparfil. Id i stället för namn, ingen ikon i
+  // inventariet, och kartans id i position och uttömda objekt
   0: (data: V0) => {
     const inventory = Object.fromEntries(
       Object.entries(data["crafting:inventory"] ?? {}).map(
         ([label, entry]) => [label, entry.amount],
       ),
     );
+    const position = data["map:position"];
 
     return {
       steps: data["stepBank:balance"],
       resources: renameKeys(data["resources:all"] ?? {}),
       inventory: renameKeys(inventory),
       xp: data["player:xp"],
-      position: data["map:position"],
-      depletedNodes: data["map:nodes"],
+      position: position && { mapId: V0_MAP_ID, ...position },
+      depletedNodes: Object.fromEntries(
+        Object.entries(data["map:nodes"] ?? {}).map(([id, respawnAt]) => [
+          `${V0_MAP_ID}:${id}`,
+          respawnAt,
+        ]),
+      ),
     };
   },
 };

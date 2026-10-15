@@ -1,10 +1,14 @@
 // hooks/usePlayerWalk.ts
 import { findPath, findPathToAdjacent, Point, TILE_SIZE } from "@/map/tilemap";
-import { movePlayerAtom, playerPositionAtom } from "@/state/map";
-import { depletedNodesAtom } from "@/state/nodes";
+import {
+  currentMapAtom,
+  movePlayerAtom,
+  playerPositionAtom,
+} from "@/state/map";
+import { depletedOnMapAtom } from "@/state/nodes";
 import * as Haptics from "expo-haptics";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   cancelAnimation,
   Easing,
@@ -25,12 +29,9 @@ const noPath = () =>
 export const usePlayerWalk = () => {
   const position = useAtomValue(playerPositionAtom);
   const movePlayer = useSetAtom(movePlayerAtom);
-  const depletedNodes = useAtomValue(depletedNodesAtom);
+  const map = useAtomValue(currentMapAtom);
   // uttömda objekt går att gå över
-  const depleted = useMemo(
-    () => new Set(Object.keys(depletedNodes).map(Number)),
-    [depletedNodes],
-  );
+  const depleted = useAtomValue(depletedOnMapAtom);
   const [target, setTarget] = useState<Point | null>(null);
 
   const playerX = useSharedValue(position.x * TILE_SIZE);
@@ -127,24 +128,24 @@ export const usePlayerWalk = () => {
 
   const walkTo = useCallback(
     (destination: Point) => {
-      const path = findPath(currentTile(), destination, depleted);
+      const path = findPath(map, currentTile(), destination, depleted);
       if (!path) return noPath();
 
       walkPath(path, destination);
     },
-    [currentTile, walkPath, depleted],
+    [map, currentTile, walkPath, depleted],
   );
 
   // går till en ruta bredvid någon av tiles, t.ex. foten på ett träd,
   // och anropar callback när spelaren står där
   const walkNextTo = useCallback(
     (tiles: Point[], callback: () => void) => {
-      const path = findPathToAdjacent(currentTile(), tiles, depleted);
+      const path = findPathToAdjacent(map, currentTile(), tiles, depleted);
       if (!path) return noPath();
 
       walkPath(path, tiles[0], callback);
     },
-    [currentTile, walkPath, depleted],
+    [map, currentTile, walkPath, depleted],
   );
 
   return { playerX, playerY, walking, target, walkTo, walkNextTo };
