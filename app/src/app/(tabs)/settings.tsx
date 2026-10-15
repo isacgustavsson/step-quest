@@ -1,10 +1,17 @@
 import { useSimulateSteps } from "@/hooks/useSimulateSteps";
-import { resetProgressAtom } from "@/state/settings";
+import { resetProgressAtom } from "@/state/save";
 import { colors, styles } from "@/styles/main";
 import { Image } from "expo-image";
 import { useSetAtom } from "jotai";
 import { useState } from "react";
-import { Keyboard, Pressable, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Keyboard,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 const sprites = {
   ruins: require("@assets/img/ruins.jpg"),
@@ -27,8 +34,9 @@ export default function Settings() {
     Keyboard.dismiss();
   };
 
-  const handleClearBank = () => {
-    resetProgress();
+  const handleClearBank = async () => {
+    await resetProgress();
+    Alert.alert("storage cleared");
   };
 
   return (

@@ -51,9 +51,11 @@ Ny karta: Orthogonal, tile layer format CSV, tile size 16×16, och inbäddade ti
 
 Kartan kan använda flera tilesets. Lägg bilden i `app/assets/maps/` och lägg till filnamnet i `TILESET_IMAGES` i `app/src/map/tilemap.ts`, eftersom Metro bara kan läsa in bilder med fasta sökvägar.
 
-## Innehåll
+## Innehåll och sparfil
 
 Resurser (`data/resources.ts`), föremål (`data/items.ts`), insamlingsrecept (`data/gathering.ts`) och crafting-recept (`data/crafting.ts`) har stabila id:n, t.ex. `pine_branch`. Id:t sparas i sparfilen och i Tiled, och namnet är bara det som visas, så ett namn kan ändras utan att någons framsteg försvinner.
+
+Hela spelet sparas under en nyckel i AsyncStorage, med ett versionsnummer. Ändras formen på något som sparas höjs `SAVE_VERSION` i `app/src/state/migrations.ts` och en migrering läggs till, så att gamla sparfiler uppgraderas när appen startar. Sparfiler från innan det fanns en version (en nyckel per atom, namn i stället för id) migreras automatiskt.
 
 Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) av Cainos (`cainos-*.png`). Den äldre kartan använder [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0, `tileset.png`). Både Tiled och appen använder samma bilder; appen ritar pixlarna utan utsmetning.
 
@@ -86,7 +88,7 @@ Navigering sker med **Expo Router** (filbaserad routing i `src/app/`).
 
 | Paket                                       | Används till                                                          |
 | ------------------------------------------- | --------------------------------------------------------------------- |
-| `@react-native-async-storage/async-storage` | Sparar stegbank, resurser, inventory, XP, kartposition och återväxt.  |
+| `@react-native-async-storage/async-storage` | Sparar hela spelet (stegbank, resurser, inventory, XP, position, återväxt) i en versionerad sparfil. |
 | `jotai`                                     | Global state (atoms) för stegbank, resurser, crafting och spelarnivå. |
 | `react-native-gesture-handler`              | Pan-, pinch- och tryckgester på kartan.                               |
 | `react-native-reanimated`                   | Animerar kartans zoom/förflyttning och spelarens gång på UI-tråden.   |

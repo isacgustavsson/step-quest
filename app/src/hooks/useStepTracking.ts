@@ -1,45 +1,39 @@
-import {
-  BANK_KEY,
-  bankedStepsAtom,
-  depositAtom,
-  isAvailableAtom,
-} from "@/state/stepbank";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { hydratedAtom } from "@/state/save";
+import { depositAtom, isAvailableAtom } from "@/state/stepbank";
 import { Pedometer } from "expo-sensors";
-import { useSetAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
 
 export const useStepTracking = () => {
-  // state
-  const setStepCount = useSetAtom(bankedStepsAtom);
+  const hydrated = useAtomValue(hydratedAtom);
   const depositSteps = useSetAtom(depositAtom);
   const setIsAvailable = useSetAtom(isAvailableAtom);
 
-  // ref
-  const lastStepCountReport = useRef(0);
-
-  const subscribe = async () => {
-    const stored = await AsyncStorage.getItem(BANK_KEY);
-    setStepCount(stored ? Number(stored) : 0);
-
-    const available = await Pedometer.isAvailableAsync();
-    if (!available) return;
-
-    setIsAvailable(true);
-
-    return Pedometer.watchStepCount((result) => {
-      const delta = result.steps - lastStepCountReport.current;
-      lastStepCountReport.current = result.steps;
-
-      depositSteps(delta);
-    });
-  };
-
   useEffect(() => {
-    const subscriptionPromise = subscribe();
+    // banken måste vara inläst, annars skrivs insättningar över
+    if (!hydrated) return;
+
+    let cancelled = false;
+    let subscription: { remove: () => void } | undefined;
+    let lastStepCountReport = 0;
+
+    const start = async () => {
+      const available = await Pedometer.isAvailableAsync();
+      if (!available || cancelled) return;
+
+      setIsAvailable(true);
+
+      subscription = Pedometer.watchStepCount((result) => {
+        depositSteps(result.steps - lastStepCountReport);
+        lastStepCountReport = result.steps;
+      });
+    };
+
+    start();
 
     return () => {
-      subscriptionPromise.then((subscription) => subscription?.remove());
+      cancelled = true;
+      subscription?.remove();
     };
-  }, []);
+  }, [hydrated, depositSteps, setIsAvailable]);
 };

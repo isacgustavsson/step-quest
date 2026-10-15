@@ -1,16 +1,18 @@
 import type { CraftRecipe, ItemId, ResourceId } from "@/data/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
-import { RESOURCES_KEY, resourcesAtom } from "./resources";
+import { resourcesAtom } from "./resources";
+import { persistedAtom } from "./save";
 
 export type CraftResult =
   | { ok: false; reason: string }
   | { ok: true; xp: number; cost: Record<ResourceId, number>; amount: number };
 
-export const INVENTORY_KEY = "crafting:inventory";
 // föremålets id → antal. Ikon och namn slås upp i data/items.ts
-export const inventoryAtom = atom<Record<ItemId, number>>({});
+export const inventoryAtom = persistedAtom<Record<ItemId, number>>(
+  "inventory",
+  {},
+);
 
 export const craftAtom = atom(
   null,
@@ -35,15 +37,12 @@ export const craftAtom = atom(
     }
 
     set(resourcesAtom, nextResources);
-    AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(nextResources));
 
     const inventory = get(inventoryAtom);
-    const nextInventory = {
+    set(inventoryAtom, {
       ...inventory,
       [recipe.item]: (inventory[recipe.item] ?? 0) + times,
-    };
-    set(inventoryAtom, nextInventory);
-    AsyncStorage.setItem(INVENTORY_KEY, JSON.stringify(nextInventory));
+    });
 
     const totalXp = recipe.xpYield * times;
     set(addXpAtom, totalXp);

@@ -1,12 +1,29 @@
-import { Point, START_POSITION } from "@/map/tilemap";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { isOpenGround, Point, START_POSITION } from "@/map/tilemap";
 import { atom } from "jotai";
+import { persistedAtom } from "./save";
 
-export const MAP_POSITION_KEY = "map:position";
+// kartan kan ha ändrats sedan positionen sparades. Resursobjekt räknas
+// inte, eftersom spelaren kan stå där ett uttömt objekt stod
+const restorePosition = (stored: unknown): Point => {
+  const position = stored as Partial<Point>;
 
-export const playerPositionAtom = atom<Point>(START_POSITION);
+  if (
+    typeof position.x !== "number" ||
+    typeof position.y !== "number" ||
+    !isOpenGround({ x: position.x, y: position.y })
+  ) {
+    return START_POSITION;
+  }
+
+  return { x: position.x, y: position.y };
+};
+
+export const playerPositionAtom = persistedAtom<Point>(
+  "position",
+  START_POSITION,
+  restorePosition,
+);
 
 export const movePlayerAtom = atom(null, (get, set, position: Point) => {
   set(playerPositionAtom, position);
-  AsyncStorage.setItem(MAP_POSITION_KEY, JSON.stringify(position));
 });

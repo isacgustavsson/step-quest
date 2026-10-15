@@ -1,19 +1,17 @@
 import { GATHER_RECIPES } from "@/data/gathering";
 import { RESOURCES } from "@/data/resources";
 import { footTiles, RESOURCE_NODES, ResourceNode } from "@/map/tilemap";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
 import { playerPositionAtom } from "./map";
 import { playerLevelAtom } from "./player";
 import { GatherResult, gatherAtom } from "./resources";
-
-export const NODES_KEY = "map:nodes";
+import { persistedAtom } from "./save";
 
 // objekt-id på kartan → tidpunkten (ms) då objektet växer tillbaka
-export const depletedNodesAtom = atom<Record<number, number>>({});
-
-const save = (depleted: Record<number, number>) =>
-  AsyncStorage.setItem(NODES_KEY, JSON.stringify(depleted));
+export const depletedNodesAtom = persistedAtom<Record<number, number>>(
+  "depletedNodes",
+  {},
+);
 
 // ett objekt är uttömt tills pruneNodesAtom har tagit bort det
 export const isDepleted = (
@@ -47,12 +45,10 @@ export const gatherNodeAtom = atom(
     const result = set(gatherAtom, recipe);
     if (!result.ok) return result;
 
-    const next = {
+    set(depletedNodesAtom, {
       ...get(depletedNodesAtom),
       [node.id]: Date.now() + recipe.respawnSeconds * 1000,
-    };
-    set(depletedNodesAtom, next);
-    save(next);
+    });
 
     return result;
   },
@@ -81,5 +77,4 @@ export const pruneNodesAtom = atom(null, (get, set) => {
   if (Object.keys(next).length === Object.keys(current).length) return;
 
   set(depletedNodesAtom, next);
-  save(next);
 });

@@ -1,7 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
-
-export const BANK_KEY = "stepBank:balance";
+import { persistedAtom } from "./save";
 
 type WithDrawResult =
   | { ok: false; reason: string }
@@ -9,16 +7,12 @@ type WithDrawResult =
 
 export const isAvailableAtom = atom(false);
 
-export const bankedStepsAtom = atom(0);
+export const bankedStepsAtom = persistedAtom("steps", 0);
 
 export const depositAtom = atom(null, (get, set, delta: number) => {
   if (delta <= 0) return;
 
-  const current = get(bankedStepsAtom);
-  const next = current + delta;
-
-  set(bankedStepsAtom, next);
-  AsyncStorage.setItem(BANK_KEY, String(next));
+  set(bankedStepsAtom, get(bankedStepsAtom) + delta);
 });
 
 export const withdrawAtom = atom(
@@ -34,7 +28,6 @@ export const withdrawAtom = atom(
 
     const next = current - amount;
     set(bankedStepsAtom, next);
-    AsyncStorage.setItem(BANK_KEY, String(next));
 
     return { ok: true, newBalance: next };
   },

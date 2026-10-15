@@ -1,12 +1,13 @@
 import type { GatherRecipe, ResourceId } from "@/data/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
+import { persistedAtom } from "./save";
 import { withdrawAtom } from "./stepbank";
 
-export const RESOURCES_KEY = "resources:all";
-
-export const resourcesAtom = atom<Record<ResourceId, number>>({});
+export const resourcesAtom = persistedAtom<Record<ResourceId, number>>(
+  "resources",
+  {},
+);
 
 export const gatherAtom = atom(
   null,
@@ -18,13 +19,10 @@ export const gatherAtom = atom(
     }
 
     const current = get(resourcesAtom);
-    const next = {
+    set(resourcesAtom, {
       ...current,
       [recipe.resource]: (current[recipe.resource] ?? 0) + recipe.gain,
-    };
-
-    set(resourcesAtom, next);
-    AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
+    });
     set(addXpAtom, recipe.xpYield);
 
     return {

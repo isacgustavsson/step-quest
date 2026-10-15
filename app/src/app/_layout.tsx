@@ -1,9 +1,5 @@
 import { HeaderComponent } from "@/components/header";
-import { useInventoryTracking } from "@/hooks/useInventoryTracking";
-import { useMapTracking } from "@/hooks/useMapTracking";
-import { useNodeTracking } from "@/hooks/useNodeTracking";
-import { usePlayerTracking } from "@/hooks/usePlayerTracking";
-import { useResourceTracking } from "@/hooks/useResourceTracking";
+import { useSaveGame } from "@/hooks/useSaveGame";
 import { useStepTracking } from "@/hooks/useStepTracking";
 import { colors } from "@/styles/main";
 import { useFonts } from "expo-font";
@@ -11,18 +7,15 @@ import { DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
+  const hydrated = useSaveGame();
   useStepTracking();
-  useResourceTracking();
-  usePlayerTracking();
-  useInventoryTracking();
-  useMapTracking();
-  useNodeTracking();
 
   const [loaded] = useFonts({
     monogram: require("@assets/fonts/monogram.ttf"),
   });
 
-  if (!loaded) return null;
+  // spelet visas först när sparfilen är inläst
+  if (!loaded || !hydrated) return null;
 
   const theme = {
     ...DefaultTheme,
