@@ -59,6 +59,8 @@ Resurser (`data/resources.ts`), föremål (`data/items.ts`), insamlingsrecept (`
 
 Hela spelet sparas under en nyckel i AsyncStorage, med ett versionsnummer. Ändras formen på något som sparas höjs `SAVE_VERSION` i `app/src/state/migrations.ts` och en migrering läggs till, så att gamla sparfiler uppgraderas när appen startar. Sparfiler från innan det fanns en version (en nyckel per atom, namn i stället för id) migreras automatiskt.
 
+På iOS hämtas steg som togs medan appen var stängd när appen öppnas, upp till en vecka bakåt. Android har ingen sådan historik, så där räknas bara steg medan appen är öppen.
+
 Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) av Cainos (`cainos-*.png`). Den äldre kartan använder [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0, `tileset.png`). Både Tiled och appen använder samma bilder; appen ritar pixlarna utan utsmetning.
 
 ## Använda RN-komponenter
@@ -79,7 +81,7 @@ Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top
 
 | Modul          | Används till                                                                  |
 | -------------- | ----------------------------------------------------------------------------- |
-| `expo-sensors` | `Pedometer` läser telefonens stegräknare, och nya steg sätts in i stegbanken. |
+| `expo-sensors` | `Pedometer` läser telefonens stegräknare, och nya steg sätts in i stegbanken. På iOS hämtas även steg från tiden appen var stängd. |
 | `expo-haptics` | Vibrationsfeedback när en insamling eller crafting lyckas eller misslyckas.   |
 | `expo-image`   | Visar bakgrundsbilder, ikoner för aktiviteter, recept och resurser.           |
 | `expo-font`    | Laddar den egna pixelfonten `monogram` vid start.                             |

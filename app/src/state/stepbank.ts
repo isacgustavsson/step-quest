@@ -9,6 +9,13 @@ export const isAvailableAtom = atom(false);
 
 export const bankedStepsAtom = persistedAtom("steps", 0);
 
+// när stegen senast hämtades från stegräknaren (ms), så att steg som tas
+// medan appen är stängd kan hämtas i efterhand. null = aldrig
+export const stepsSyncedAtAtom = persistedAtom<number | null>(
+  "stepsSyncedAt",
+  null,
+);
+
 export const depositAtom = atom(null, (get, set, delta: number) => {
   if (delta <= 0) return;
 

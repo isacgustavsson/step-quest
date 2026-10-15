@@ -39,12 +39,14 @@ export type GameMap = {
   nodesById: Map<number, ResourceNode>;
   // fotruta → objekt, så att breda objekt hittas från alla sina rutor
   nodesByTile: Map<number, ResourceNode>;
+  // ruta → objekt vars bild täcker rutans mitt, för tryck på t.ex. en krona
+  nodesByImageTile: Map<number, ResourceNode[]>;
 };
 
 const tileIndex = (map: GameMap, { x, y }: Point) => y * map.width + x;
 
 export const buildMap = (id: string, world: World): GameMap => {
-  const { width, height } = world;
+  const { width, height, tileSize } = world;
   const index = ({ x, y }: Point) => y * width + x;
 
   // objekt vars resurs saknar recept hoppas över, så att en felstavning i
@@ -64,6 +66,22 @@ export const buildMap = (id: string, world: World): GameMap => {
       ),
   );
 
+  const nodesByImageTile = new Map<number, ResourceNode[]>();
+  for (const node of nodes) {
+    // rutorna vars mitt ligger inom bilden
+    const left = Math.ceil(node.px / tileSize - 0.5);
+    const right = Math.ceil((node.px + node.width) / tileSize - 0.5) - 1;
+    const top = Math.ceil((node.py - node.height) / tileSize - 0.5);
+    const bottom = Math.ceil(node.py / tileSize - 0.5) - 1;
+
+    for (let y = Math.max(0, top); y <= Math.min(height - 1, bottom); y++) {
+      for (let x = Math.max(0, left); x <= Math.min(width - 1, right); x++) {
+        const key = index({ x, y });
+        nodesByImageTile.set(key, [...(nodesByImageTile.get(key) ?? []), node]);
+      }
+    }
+  }
+
   return {
     id,
     world,
@@ -72,6 +90,7 @@ export const buildMap = (id: string, world: World): GameMap => {
     nodes,
     nodesById: new Map(nodes.map((node) => [node.id, node])),
     nodesByTile,
+    nodesByImageTile,
   };
 };
 
@@ -85,23 +104,11 @@ export const getNodeAtTap = (
   p: Point,
   depleted: Set<number>,
 ): ResourceNode | undefined => {
-  const size = map.world.tileSize;
-  const cx = (p.x + 0.5) * size;
-  const cy = (p.y + 0.5) * size;
-
   let hit: ResourceNode | undefined;
-  for (const node of map.nodes) {
+  for (const node of map.nodesByImageTile.get(tileIndex(map, p)) ?? []) {
     if (depleted.has(node.id)) continue;
-
-    const covers =
-      cx >= node.px &&
-      cx < node.px + node.width &&
-      cy >= node.py - node.height &&
-      cy < node.py;
-
-    if (covers && (!hit || node.y > hit.y)) hit = node;
+    if (!hit || node.y > hit.y) hit = node;
   }
-
   return hit;
 };
 
@@ -143,7 +150,10 @@ const bfs = (
   depleted?: Set<number>,
 ): Point[] | null => {
   const key = (p: Point) => tileIndex(map, p);
-  const cameFrom = new Map<number, Point | null>([[key(from), null]]);
+  // rutan man kom ifrån, -1 = inte besökt. En typad array är mycket
+  // snabbare än en Map på stora kartor
+  const cameFrom = new Int32Array(map.width * map.height).fill(-1);
+  cameFrom[key(from)] = key(from);
   const queue: Point[] = [from];
 
   // läser med ett index i stället för queue.shift(), som flyttar om hela
@@ -153,11 +163,11 @@ const bfs = (
 
     if (isGoal(current)) {
       const path: Point[] = [];
-      let step: Point | null = current;
+      let step = key(current);
 
-      while (step && key(step) !== key(from)) {
-        path.push(step);
-        step = cameFrom.get(key(step)) ?? null;
+      while (step !== key(from)) {
+        path.push({ x: step % map.width, y: Math.floor(step / map.width) });
+        step = cameFrom[step];
       }
 
       return path.reverse();
@@ -166,8 +176,8 @@ const bfs = (
     for (const dir of DIRECTIONS) {
       const next = { x: current.x + dir.x, y: current.y + dir.y };
 
-      if (isWalkable(map, next, depleted) && !cameFrom.has(key(next))) {
-        cameFrom.set(key(next), current);
+      if (isWalkable(map, next, depleted) && cameFrom[key(next)] === -1) {
+        cameFrom[key(next)] = key(current);
         queue.push(next);
       }
     }
