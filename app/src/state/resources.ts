@@ -1,4 +1,4 @@
-import type { GatherRecipe } from "@/data/gathering";
+import type { GatherRecipe, ResourceId } from "@/data/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
@@ -6,10 +6,7 @@ import { withdrawAtom } from "./stepbank";
 
 export const RESOURCES_KEY = "resources:all";
 
-export const resourcesAtom = atom<Record<string, number>>({
-  wood: 0,
-  stone: 0,
-});
+export const resourcesAtom = atom<Record<ResourceId, number>>({});
 
 export const gatherAtom = atom(
   null,
@@ -23,7 +20,7 @@ export const gatherAtom = atom(
     const current = get(resourcesAtom);
     const next = {
       ...current,
-      [recipe.resourceKey]: (current[recipe.resourceKey] ?? 0) + recipe.gain,
+      [recipe.resource]: (current[recipe.resource] ?? 0) + recipe.gain,
     };
 
     set(resourcesAtom, next);

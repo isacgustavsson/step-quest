@@ -1,18 +1,8 @@
-import type { Recipe } from "@/components/actionCard";
-
-export type GatherRecipe = Recipe & {
-  resourceKey: string;
-  // steg som dras och resurser som ges vid varje insamling
-  stepCost: number;
-  gain: number;
-  // hur länge ett uttömt objekt på kartan tar på sig att växa tillbaka
-  respawnSeconds: number;
-};
+import type { GatherRecipe, ResourceId } from "./types";
 
 const recipes: GatherRecipe[] = [
   {
-    label: "pine branch",
-    resourceKey: "pine branch",
+    resource: "pine_branch",
     stepCost: 10,
     gain: 2,
     actionLabel: "gather",
@@ -21,8 +11,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 30,
   },
   {
-    label: "birch log",
-    resourceKey: "birch log",
+    resource: "birch_log",
     stepCost: 20,
     gain: 3,
     actionLabel: "chop tree",
@@ -31,8 +20,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 60,
   },
   {
-    label: "willow log",
-    resourceKey: "willow log",
+    resource: "willow_log",
     stepCost: 30,
     gain: 3,
     actionLabel: "chop tree",
@@ -41,8 +29,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 90,
   },
   {
-    label: "maple log",
-    resourceKey: "maple log",
+    resource: "maple_log",
     stepCost: 40,
     gain: 4,
     actionLabel: "chop tree",
@@ -51,8 +38,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 120,
   },
   {
-    label: "oak log",
-    resourceKey: "oak log",
+    resource: "oak_log",
     stepCost: 50,
     gain: 4,
     actionLabel: "log tree",
@@ -61,8 +47,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 180,
   },
   {
-    label: "stone",
-    resourceKey: "stone",
+    resource: "stone",
     stepCost: 10,
     gain: 2,
     actionLabel: "gather",
@@ -71,8 +56,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 30,
   },
   {
-    label: "copper ore",
-    resourceKey: "copper ore",
+    resource: "copper_ore",
     stepCost: 20,
     gain: 3,
     actionLabel: "mine",
@@ -81,8 +65,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 60,
   },
   {
-    label: "coal",
-    resourceKey: "coal",
+    resource: "coal",
     stepCost: 30,
     gain: 3,
     actionLabel: "mine",
@@ -91,8 +74,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 90,
   },
   {
-    label: "iron ore",
-    resourceKey: "iron ore",
+    resource: "iron_ore",
     stepCost: 40,
     gain: 4,
     actionLabel: "mine",
@@ -101,8 +83,7 @@ const recipes: GatherRecipe[] = [
     respawnSeconds: 120,
   },
   {
-    label: "tin ore",
-    resourceKey: "tin ore",
+    resource: "tin_ore",
     stepCost: 50,
     gain: 4,
     actionLabel: "mine",
@@ -112,7 +93,7 @@ const recipes: GatherRecipe[] = [
   },
 ];
 
-// objekten på kartan pekar ut sitt recept med property `resource` i Tiled
-export const GATHER_RECIPES: Record<string, GatherRecipe> = Object.fromEntries(
-  recipes.map((recipe) => [recipe.resourceKey, recipe]),
-);
+// objekten på kartan pekar ut sitt recept med property `resource` i Tiled,
+// som är resursens id
+export const GATHER_RECIPES: Record<ResourceId, GatherRecipe> =
+  Object.fromEntries(recipes.map((recipe) => [recipe.resource, recipe]));

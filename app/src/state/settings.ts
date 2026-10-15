@@ -11,7 +11,7 @@ import { BANK_KEY, bankedStepsAtom } from "./stepbank";
 
 export const resetProgressAtom = atom(null, async (get, set) => {
   set(bankedStepsAtom, 0);
-  set(resourcesAtom, { wood: 0, stone: 0 });
+  set(resourcesAtom, {});
   set(playerXpAtom, 0);
   set(inventoryAtom, {});
   set(playerPositionAtom, START_POSITION);

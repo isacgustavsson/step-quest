@@ -1,29 +1,23 @@
-import { Recipe } from "@/components/actionCard";
+import type { CraftRecipe, ItemId, ResourceId } from "@/data/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ImageSource } from "expo-image";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
 import { RESOURCES_KEY, resourcesAtom } from "./resources";
 
 export type CraftResult =
   | { ok: false; reason: string }
-  | { ok: true; xp: number; cost: Record<string, number>; amount: number };
-
-export type InventoryEntry = {
-  amount: number;
-  icon?: ImageSource | number;
-};
+  | { ok: true; xp: number; cost: Record<ResourceId, number>; amount: number };
 
 export const INVENTORY_KEY = "crafting:inventory";
-export const inventoryAtom = atom<Record<string, InventoryEntry>>({});
+// föremålets id → antal. Ikon och namn slås upp i data/items.ts
+export const inventoryAtom = atom<Record<ItemId, number>>({});
 
 export const craftAtom = atom(
   null,
-  (get, set, recipe: Recipe, times: number = 1): CraftResult => {
-    const cost = recipe.cost ?? {};
+  (get, set, recipe: CraftRecipe, times: number = 1): CraftResult => {
     const resources = get(resourcesAtom);
 
-    const hasEnoughResources = Object.entries(cost).every(
+    const hasEnoughResources = Object.entries(recipe.cost).every(
       ([key, amount]) => (resources[key] ?? 0) >= amount * times,
     );
 
@@ -32,9 +26,9 @@ export const craftAtom = atom(
     }
 
     const nextResources = { ...resources };
-    const totalCost: Record<string, number> = {};
+    const totalCost: Record<ResourceId, number> = {};
 
-    for (const [key, amount] of Object.entries(cost)) {
+    for (const [key, amount] of Object.entries(recipe.cost)) {
       const spent = amount * times;
       nextResources[key] = (nextResources[key] ?? 0) - spent;
       totalCost[key] = spent;
@@ -44,13 +38,9 @@ export const craftAtom = atom(
     AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(nextResources));
 
     const inventory = get(inventoryAtom);
-    const existing = inventory[recipe.label];
     const nextInventory = {
       ...inventory,
-      [recipe.label]: {
-        amount: (existing?.amount ?? 0) + times,
-        icon: recipe.icon,
-      },
+      [recipe.item]: (inventory[recipe.item] ?? 0) + times,
     };
     set(inventoryAtom, nextInventory);
     AsyncStorage.setItem(INVENTORY_KEY, JSON.stringify(nextInventory));

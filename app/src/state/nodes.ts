@@ -1,4 +1,5 @@
 import { GATHER_RECIPES } from "@/data/gathering";
+import { RESOURCES } from "@/data/resources";
 import { footTiles, RESOURCE_NODES, ResourceNode } from "@/map/tilemap";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
@@ -30,7 +31,10 @@ export const gatherNodeAtom = atom(
     const recipe = GATHER_RECIPES[node.resource];
 
     if (isDepleted(get(depletedNodesAtom), node)) {
-      return { ok: false, reason: `the ${recipe.label} has not grown back` };
+      return {
+        ok: false,
+        reason: `the ${RESOURCES[node.resource].label} has not grown back`,
+      };
     }
 
     if (get(playerLevelAtom) < recipe.levelUnlocked) {

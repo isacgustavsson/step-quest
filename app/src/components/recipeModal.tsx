@@ -1,8 +1,9 @@
-import { getRecipeIcon, Recipe } from "@/components/actionCard";
-import { RESOURCE_ICONS } from "@/state/resourceIcons";
+import { ITEMS } from "@/data/items";
+import { RESOURCES } from "@/data/resources";
+import type { CraftRecipe, Icon } from "@/data/types";
 import { resourcesAtom } from "@/state/resources";
 import { colors, styles } from "@/styles/main";
-import { Image, ImageSource } from "expo-image";
+import { Image } from "expo-image";
 import { useAtomValue } from "jotai";
 import { ReactNode, useState } from "react";
 import {
@@ -54,8 +55,8 @@ export const ModalBackdrop = ({
 );
 
 type RecipeModalProps = {
-  recipe: Recipe | null;
-  onAction: (recipe: Recipe, times: number) => void;
+  recipe: CraftRecipe | null;
+  onAction: (recipe: CraftRecipe, times: number) => void;
   onClose: () => void;
 };
 
@@ -67,7 +68,7 @@ export const RecipeModal = ({
   <ModalBackdrop visible={recipe !== null} onClose={onClose}>
     {recipe && (
       <RecipeContent
-        key={recipe.label}
+        key={recipe.item}
         recipe={recipe}
         onAction={onAction}
         onClose={onClose}
@@ -77,8 +78,8 @@ export const RecipeModal = ({
 );
 
 type RecipeContentProps = {
-  recipe: Recipe;
-  onAction: (recipe: Recipe, times: number) => void;
+  recipe: CraftRecipe;
+  onAction: (recipe: CraftRecipe, times: number) => void;
   onClose: () => void;
 };
 
@@ -86,7 +87,7 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
   const [input, setInput] = useState("1");
   const resources = useAtomValue(resourcesAtom);
 
-  const icon = getRecipeIcon(recipe);
+  const item = ITEMS[recipe.item];
 
   const parsed = parseInt(input, 10);
   const count = isNaN(parsed) ? 0 : parsed;
@@ -104,38 +105,36 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
       onPress={Keyboard.dismiss}
     >
       <View style={[styles.rowBetween]}>
-        <Text style={[styles.text, { fontSize: 32 }]}>{recipe.label}</Text>
+        <Text style={[styles.text, { fontSize: 32 }]}>{item.label}</Text>
         <Pressable onPress={onClose} hitSlop={20}>
           <Text style={[styles.text, { color: colors.textMuted }]}>x</Text>
         </Pressable>
       </View>
 
-      {icon && (
-        <Image
-          source={icon}
-          style={{ width: 96, height: 96 }}
-          contentFit="cover"
-        />
-      )}
+      <Image
+        source={item.icon}
+        style={{ width: 96, height: 96 }}
+        contentFit="cover"
+      />
 
-      {recipe.description && (
+      {item.description && (
         <Text
           style={[
             styles.text,
             { color: colors.textMuted, textAlign: "center" },
           ]}
         >
-          {recipe.description}
+          {item.description}
         </Text>
       )}
 
       <View style={{ width: "100%", gap: 8 }}>
         <Text style={styles.text}>cost</Text>
-        {Object.entries(recipe.cost ?? {}).map(([key, amount]) => (
+        {Object.entries(recipe.cost).map(([key, amount]) => (
           <CostRow
             key={key}
-            label={key}
-            icon={RESOURCE_ICONS[key]}
+            label={RESOURCES[key]?.label ?? key}
+            icon={RESOURCES[key]?.icon}
             have={resources[key] ?? 0}
             need={amount * count}
           />
@@ -208,7 +207,7 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
 
 type CostRowProps = {
   label: string;
-  icon?: ImageSource | number;
+  icon?: Icon;
   have: number;
   need: number;
 };

@@ -1,8 +1,9 @@
 import { RecipeModal } from "@/components/recipeModal";
+import { ITEMS } from "@/data/items";
+import type { CraftActivity, CraftRecipe } from "@/data/types";
 import { playerLevelAtom } from "@/state/player";
-import { RESOURCE_ICONS } from "@/state/resourceIcons";
 import { colors, styles } from "@/styles/main";
-import { Image, ImageSource } from "expo-image";
+import { Image } from "expo-image";
 import { useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import {
@@ -14,40 +15,22 @@ import {
   View,
 } from "react-native";
 
-export type Recipe = {
-  label: string;
-  description?: string;
-  actionLabel: string;
-  image?: ImageSource | number;
-  icon?: ImageSource | number;
-  levelUnlocked: number;
-  xpYield: number;
-  resourceKey?: string;
-  cost?: Record<string, number>;
-};
-
-export type Activity = {
-  label: string;
-  image: ImageSource | number;
-  icon: ImageSource | number;
-  onAction: (recipe: Recipe, times: number) => void;
-  recipes: Recipe[];
-};
-
-export const getRecipeIcon = (recipe: Recipe) =>
-  recipe.icon ?? RESOURCE_ICONS[recipe.resourceKey ?? recipe.label];
-
 const TILE_GAP = 8;
 const VISIBLE_TILES = 3;
 
 export type ActionCardProps = {
   title: string;
-  activities: Activity[];
+  activities: CraftActivity[];
+  onAction: (recipe: CraftRecipe, times: number) => void;
 };
 
-export const ActionCard = ({ title, activities }: ActionCardProps) => {
+export const ActionCard = ({
+  title,
+  activities,
+  onAction,
+}: ActionCardProps) => {
   const [selectedCategory, setSelectedCategory] = useState(0);
-  const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
+  const [openRecipe, setOpenRecipe] = useState<CraftRecipe | null>(null);
 
   const [rowWidth, setRowWidth] = useState(0);
   const [scrollIndex, setScrollIndex] = useState(0);
@@ -97,7 +80,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
           </Text>
           <View style={[styles.row, { width: "100%", gap: 12 }]}>
             {activities.map((activity, index) => (
-              <View key={activity.label}>
+              <View key={activity.id}>
                 <Pressable
                   style={[
                     styles.button,
@@ -133,7 +116,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
               onPress={() => scrollTo(scrollIndex - VISIBLE_TILES)}
             />
             <ScrollView
-              key={category.label}
+              key={category.id}
               ref={scrollRef}
               style={{ flex: 1 }}
               onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}
@@ -148,7 +131,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
               {rowWidth > 0 &&
                 category.recipes.map((recipe) => (
                   <RecipeTile
-                    key={recipe.label}
+                    key={recipe.item}
                     recipe={recipe}
                     size={tileSize}
                     locked={playerLevel < recipe.levelUnlocked}
@@ -167,7 +150,7 @@ export const ActionCard = ({ title, activities }: ActionCardProps) => {
 
       <RecipeModal
         recipe={openRecipe}
-        onAction={category.onAction}
+        onAction={onAction}
         onClose={() => setOpenRecipe(null)}
       />
     </>
@@ -205,14 +188,14 @@ const ScrollArrow = ({ label, disabled, onPress }: ScrollArrowProps) => (
 );
 
 type RecipeTileProps = {
-  recipe: Recipe;
+  recipe: CraftRecipe;
   size: number;
   locked: boolean;
   onPress: () => void;
 };
 
 const RecipeTile = ({ recipe, size, locked, onPress }: RecipeTileProps) => {
-  const icon = getRecipeIcon(recipe);
+  const item = ITEMS[recipe.item];
 
   return (
     <Pressable
@@ -245,19 +228,17 @@ const RecipeTile = ({ recipe, size, locked, onPress }: RecipeTileProps) => {
             locked
           </Text>
         ) : (
-          icon && (
-            <Image
-              source={icon}
-              style={{ width: "100%", height: "100%" }}
-              contentFit="cover"
-            />
-          )
+          <Image
+            source={item.icon}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+          />
         )}
       </View>
 
       {!locked && (
         <Text style={[styles.text, { fontSize: 14 }]} numberOfLines={1}>
-          {recipe.label}
+          {item.label}
         </Text>
       )}
 

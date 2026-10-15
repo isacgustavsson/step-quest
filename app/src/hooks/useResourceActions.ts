@@ -1,4 +1,4 @@
-import { GATHER_RECIPES } from "@/data/gathering";
+import { RESOURCES } from "@/data/resources";
 import { ResourceNode } from "@/map/tilemap";
 import * as Haptics from "expo-haptics";
 import { useSetAtom } from "jotai";
@@ -22,7 +22,7 @@ export const useResourceActions = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       "success!",
-      `-${result.cost} steps. \n+${result.gain} ${GATHER_RECIPES[node.resource].label}`,
+      `-${result.cost} steps. \n+${result.gain} ${RESOURCES[node.resource].label}`,
     );
     return true;
   };

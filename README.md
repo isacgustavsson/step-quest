@@ -12,7 +12,7 @@ Appen är för den som vill ha lite extra motivation att röra på sig: ju mer d
 - **Crafting**: gör föremål av resurserna.
 - **Inventory**: visar resurser och craftade föremål. Tryck på ett föremål för att öppna detaljskärmen.
 - **Settings**: lägg till steg manuellt (för test i simulator) och nollställ framsteg.
-- **Details** (`details/[label]`): visar ikon, typ och antal för en resurs eller ett föremål.
+- **Details** (`details/[id]`): visar ikon, typ och antal för en resurs eller ett föremål.
 
 I Crafting trycker du på ett recept för att öppna en modal med ikon, beskrivning, kostnad och XP. Där väljer du också hur många gånger du vill samla eller crafta.
 
@@ -39,7 +39,7 @@ Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i
 2. Måla i lagret `ground` (mark) och `decor` (låga saker som blommor och buskar ovanpå marken). Lagren ritas i samma ordning som i Tiled.
 3. Rutor som inte går att gå på har en bool-property `blocked = true` på tilen i tilesetet (Tileset-panelen → markera tile → Custom Properties). Det räcker att någon tile på en ruta, i något lager, är `blocked`.
 4. Spelaren startar på punkten som heter `spawn` i objektlagret `objects`.
-5. Resursobjekt läggs som tile-objekt (_Insert Tile_, `T`) i objektlagret `resources`. Varje objekt behöver en string-property `resource` med namnet på resursen, t.ex. `birch log` eller `copper ore`. Namnen och nivå, stegkostnad, mängd, XP och återväxttid finns i `app/src/data/gathering.ts`. Objektets fot går inte att gå på, utom när objektet är samlat och borta. Ett objekt växer inte tillbaka medan spelaren står på foten.
+5. Resursobjekt läggs som tile-objekt (_Insert Tile_, `T`) i objektlagret `resources`. Varje objekt behöver en string-property `resource` med resursens id, t.ex. `birch_log` eller `copper_ore`. Id:n, namn och ikoner finns i `app/src/data/resources.ts`, och nivå, stegkostnad, mängd, XP och återväxttid finns i `app/src/data/gathering.ts`. Objektets fot går inte att gå på, utom när objektet är samlat och borta. Ett objekt växer inte tillbaka medan spelaren står på foten.
 6. Höga eller breda saker som inte går att samla, t.ex. stora träd och hus, läggs som tile-objekt i objektlagret `props`. Deras fot är alltid ett hinder.
 7. Spara som JSON (`.json`, inte `.tmj`, eftersom Metro bara kan läsa in `.json`). Tilesetet måste vara inbäddat i kartan (_Embed tileset_).
 
@@ -50,6 +50,10 @@ Ny karta: Orthogonal, tile layer format CSV, tile size 16×16, och inbäddade ti
 **Objekt-tilesetet.** Träd, buskar, stenar och props ligger i tilesetet `cainos-objects`, ett _collection_-tileset där varje tile är en rektangel ur `cainos-plant.png` eller `cainos-props.png`. Varje tile har en property `name` (t.ex. `tree large`, `rock medium`, `barrel`). Ett nytt objekt läggs till i Tiled under _Tileset → Add Tiles_, med bilden vald och rektangeln satt under tilens _Image Rect_.
 
 Kartan kan använda flera tilesets. Lägg bilden i `app/assets/maps/` och lägg till filnamnet i `TILESET_IMAGES` i `app/src/map/tilemap.ts`, eftersom Metro bara kan läsa in bilder med fasta sökvägar.
+
+## Innehåll
+
+Resurser (`data/resources.ts`), föremål (`data/items.ts`), insamlingsrecept (`data/gathering.ts`) och crafting-recept (`data/crafting.ts`) har stabila id:n, t.ex. `pine_branch`. Id:t sparas i sparfilen och i Tiled, och namnet är bara det som visas, så ett namn kan ändras utan att någons framsteg försvinner.
 
 Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) av Cainos (`cainos-*.png`). Den äldre kartan använder [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0, `tileset.png`). Både Tiled och appen använder samma bilder; appen ritar pixlarna utan utsmetning.
 
@@ -94,7 +98,7 @@ Navigering sker med **Expo Router** (filbaserad routing i `src/app/`).
 
 - [x] Minst 4 RN-komponenter och minst 4 moduler från Expo SDK
 - [x] Komponenterna och modulerna är antecknade i README.md, tillsammans med en lista över uppfyllda krav
-- [x] Expo Router används för navigering, och minst en skärm tar emot en parameter (`details/[label]`)
+- [x] Expo Router används för navigering, och minst en skärm tar emot en parameter (`details/[id]`)
 - [x] Git och GitHub har använts, med commits spridda över arbetets gång
 - [x] Projektmappen innehåller en README.md enligt beskrivningen
 - [ ] Uppgiften är inlämnad i tid

@@ -1,6 +1,6 @@
-import { getRecipeIcon } from "@/components/actionCard";
 import { CostRow, ModalBackdrop } from "@/components/recipeModal";
-import { GatherRecipe } from "@/data/gathering";
+import { RESOURCES } from "@/data/resources";
+import type { GatherRecipe } from "@/data/types";
 import { bankedStepsAtom } from "@/state/stepbank";
 import { colors, styles } from "@/styles/main";
 import { Image } from "expo-image";
@@ -35,34 +35,32 @@ type GatherContentProps = {
 const GatherContent = ({ recipe, onGather, onClose }: GatherContentProps) => {
   const bankedSteps = useAtomValue(bankedStepsAtom);
   const canAfford = bankedSteps >= recipe.stepCost;
-  const icon = getRecipeIcon(recipe);
+  const resource = RESOURCES[recipe.resource];
 
   return (
     // fångar trycket så att modalen inte stängs vid tryck på kortet
     <Pressable style={[styles.card, { alignItems: "center" }]}>
       <View style={[styles.rowBetween]}>
-        <Text style={[styles.text, { fontSize: 32 }]}>{recipe.label}</Text>
+        <Text style={[styles.text, { fontSize: 32 }]}>{resource.label}</Text>
         <Pressable onPress={onClose} hitSlop={20}>
           <Text style={[styles.text, { color: colors.textMuted }]}>x</Text>
         </Pressable>
       </View>
 
-      {icon && (
-        <Image
-          source={icon}
-          style={{ width: 96, height: 96 }}
-          contentFit="cover"
-        />
-      )}
+      <Image
+        source={resource.icon}
+        style={{ width: 96, height: 96 }}
+        contentFit="cover"
+      />
 
-      {recipe.description && (
+      {resource.description && (
         <Text
           style={[
             styles.text,
             { color: colors.textMuted, textAlign: "center" },
           ]}
         >
-          {recipe.description}
+          {resource.description}
         </Text>
       )}
 
@@ -74,7 +72,7 @@ const GatherContent = ({ recipe, onGather, onClose }: GatherContentProps) => {
       <View style={{ width: "100%", gap: 8 }}>
         <Text style={styles.text}>yield</Text>
         <Text style={[styles.text, { color: colors.textMuted }]}>
-          {recipe.label} +{recipe.gain}
+          {resource.label} +{recipe.gain}
         </Text>
       </View>
 

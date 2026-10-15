@@ -75,7 +75,7 @@
       {
        "name": "resource",
        "type": "string",
-       "value": "pine branch"
+       "value": "pine_branch"
       }
      ],
      "rotation": 0,
@@ -94,7 +94,7 @@
       {
        "name": "resource",
        "type": "string",
-       "value": "birch log"
+       "value": "birch_log"
       }
      ],
      "rotation": 0,
@@ -113,7 +113,7 @@
       {
        "name": "resource",
        "type": "string",
-       "value": "oak log"
+       "value": "oak_log"
       }
      ],
      "rotation": 0,

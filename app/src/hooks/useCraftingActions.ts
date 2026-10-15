@@ -1,4 +1,6 @@
-import { Recipe } from "@/components/actionCard";
+import { ITEMS } from "@/data/items";
+import { RESOURCES } from "@/data/resources";
+import type { CraftRecipe } from "@/data/types";
 import { craftAtom } from "@/state/crafting";
 import * as Haptics from "expo-haptics";
 import { useSetAtom } from "jotai";
@@ -7,7 +9,7 @@ import { Alert } from "react-native";
 export const useCraftingActions = () => {
   const craft = useSetAtom(craftAtom);
 
-  const handleCraft = (recipe: Recipe, times: number = 1) => {
+  const handleCraft = (recipe: CraftRecipe, times: number = 1) => {
     const result = craft(recipe, times);
 
     if (!result.ok) {
@@ -17,13 +19,13 @@ export const useCraftingActions = () => {
     }
 
     const costText = Object.entries(result.cost)
-      .map(([key, amount]) => `${amount} ${key}`)
+      .map(([key, amount]) => `${amount} ${RESOURCES[key]?.label ?? key}`)
       .join(", ");
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       "Success!",
-      `+ ${result.amount} ${recipe.label}\n- ${costText}\n+ ${result.xp} xp`,
+      `+ ${result.amount} ${ITEMS[recipe.item].label}\n- ${costText}\n+ ${result.xp} xp`,
     );
   };
 

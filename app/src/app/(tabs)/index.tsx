@@ -1,6 +1,7 @@
 import { GatherModal } from "@/components/gatherModal";
 import { TileMap } from "@/components/tileMap";
 import { GATHER_RECIPES } from "@/data/gathering";
+import { RESOURCES } from "@/data/resources";
 import { usePlayerWalk } from "@/hooks/usePlayerWalk";
 import { useResourceActions } from "@/hooks/useResourceActions";
 import { footTiles, getNodeAtTap, Point, ResourceNode } from "@/map/tilemap";
@@ -45,18 +46,19 @@ export default function MapScreen() {
   const openGather = useCallback(
     (node: ResourceNode) => {
       const recipe = GATHER_RECIPES[node.resource];
+      const { label } = RESOURCES[node.resource];
 
       if (isDepleted(depletedNodes, node)) {
         const seconds = Math.max(
           1,
           Math.ceil((depletedNodes[node.id] - Date.now()) / 1000),
         );
-        Alert.alert(recipe.label, `grows back in ${seconds}s`);
+        Alert.alert(label, `grows back in ${seconds}s`);
         return;
       }
 
       if (playerLevel < recipe.levelUnlocked) {
-        Alert.alert(recipe.label, `requires level ${recipe.levelUnlocked}`);
+        Alert.alert(label, `requires level ${recipe.levelUnlocked}`);
         return;
       }
 

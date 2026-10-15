@@ -41,7 +41,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
-            name="details/[label]"
+            name="details/[id]"
             options={{ header: () => <HeaderComponent /> }}
           />
         </Stack>

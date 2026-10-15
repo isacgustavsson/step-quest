@@ -1,18 +1,33 @@
 import { ListDivider } from "@/components/actionCard";
+import { ITEMS } from "@/data/items";
+import { RESOURCES } from "@/data/resources";
+import { Icon } from "@/data/types";
 import { inventoryAtom } from "@/state/crafting";
-import { RESOURCE_ICONS } from "@/state/resourceIcons";
 import { resourcesAtom } from "@/state/resources";
 import { colors, styles } from "@/styles/main";
-import { Image, ImageSource } from "expo-image";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useAtomValue } from "jotai";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 type InventoryListItem = {
+  id: string;
   label: string;
   amount: number;
-  icon?: ImageSource | number;
+  icon: Icon;
 };
+
+// det som finns i sparfilen men inte längre i data/ visas inte
+const toListItems = (
+  amounts: Record<string, number>,
+  lookup: Record<string, { label: string; icon: Icon }>,
+): InventoryListItem[] =>
+  Object.entries(amounts).flatMap(([id, amount]) => {
+    const entry = lookup[id];
+    return entry && amount > 0
+      ? [{ id, label: entry.label, amount, icon: entry.icon }]
+      : [];
+  });
 
 const Tile = ({ item }: { item: InventoryListItem }) => {
   const router = useRouter();
@@ -21,8 +36,8 @@ const Tile = ({ item }: { item: InventoryListItem }) => {
     <Pressable
       onPress={() =>
         router.push({
-          pathname: "/details/[label]",
-          params: { label: item.label },
+          pathname: "/details/[id]",
+          params: { id: item.id },
         })
       }
       style={[
@@ -31,13 +46,11 @@ const Tile = ({ item }: { item: InventoryListItem }) => {
       ]}
     >
       <View style={{ width: 42, height: 42 }}>
-        {item.icon && (
-          <Image
-            source={item.icon}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-          />
-        )}
+        <Image
+          source={item.icon}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
       </View>
 
       <Text style={[styles.text, { fontSize: 14 }]} numberOfLines={1}>
@@ -61,7 +74,7 @@ const TileGrid = ({ items }: { items: InventoryListItem[] }) => (
     ]}
   >
     {items.map((item) => (
-      <Tile key={item.label} item={item} />
+      <Tile key={item.id} item={item} />
     ))}
   </View>
 );
@@ -70,17 +83,8 @@ export default function Inventory() {
   const inventory = useAtomValue(inventoryAtom);
   const resources = useAtomValue(resourcesAtom);
 
-  const items: InventoryListItem[] = Object.entries(inventory).map(
-    ([label, entry]) => ({ label, amount: entry.amount, icon: entry.icon }),
-  );
-
-  const resourceItems: InventoryListItem[] = Object.entries(resources)
-    .filter(([, amount]) => amount > 0)
-    .map(([label, amount]) => ({
-      label,
-      amount,
-      icon: RESOURCE_ICONS[label],
-    }));
+  const items = toListItems(inventory, ITEMS);
+  const resourceItems = toListItems(resources, RESOURCES);
 
   if (items.length === 0 && resourceItems.length === 0) {
     return (
