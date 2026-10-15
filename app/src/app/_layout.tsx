@@ -1,6 +1,7 @@
 import { HeaderComponent } from "@/components/header";
 import { useInventoryTracking } from "@/hooks/useInventoryTracking";
 import { useMapTracking } from "@/hooks/useMapTracking";
+import { useNodeTracking } from "@/hooks/useNodeTracking";
 import { usePlayerTracking } from "@/hooks/usePlayerTracking";
 import { useResourceTracking } from "@/hooks/useResourceTracking";
 import { useStepTracking } from "@/hooks/useStepTracking";
@@ -15,6 +16,7 @@ export default function RootLayout() {
   usePlayerTracking();
   useInventoryTracking();
   useMapTracking();
+  useNodeTracking();
 
   const [loaded] = useFonts({
     monogram: require("@assets/fonts/monogram.ttf"),

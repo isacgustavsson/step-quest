@@ -1,11 +1,14 @@
 import {
+  getTilesetImage,
   MAP_HEIGHT,
   MAP_WIDTH,
+  MapObject,
   Point,
+  RESOURCE_NODES,
   TILE_SIZE,
-  TILESET_IMAGE,
   WORLD,
 } from "@/map/tilemap";
+import { PlacedTile, tileSprite } from "@/map/tiled";
 import { colors } from "@/styles/main";
 import {
   Atlas,
@@ -13,45 +16,46 @@ import {
   FilterMode,
   Group,
   MipmapMode,
+  Rect,
+  SkImage,
+  SkRect,
   Skia,
+  SkRSXform,
   useImage,
 } from "@shopify/react-native-skia";
-import { Image } from "expo-image";
-import { useEffect, useMemo, useRef } from "react";
-import { LayoutChangeEvent, StyleSheet, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  LayoutChangeEvent,
+  Image as RNImage,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  cancelAnimation,
-  Easing,
+import {
   SharedValue,
   useAnimatedReaction,
-  useAnimatedStyle,
   useDerivedValue,
+  useFrameCallback,
   useSharedValue,
-  withRepeat,
-  withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 // spelarens animationer: en rad per riktning, i samma ordning i båda
 // sheeten. Raderna 1 och 3 är diagonaler, som inte behövs när spelaren
 // bara går i fyra riktningar
-const FRAME_SIZE = 32;
+const FRAME_SIZE = 24;
 const ROW_DOWN = 0;
 const ROW_SIDE = 2;
 const ROW_UP = 4;
 
 const RUN_SHEET = require("@assets/sprites/player-run.png");
-const RUN_FRAME_COUNT = 4;
-const RUN_SHEET_WIDTH = FRAME_SIZE * RUN_FRAME_COUNT;
-const RUN_SHEET_HEIGHT = FRAME_SIZE * 5;
-// en hel springcykel per två tiles
-const PIXELS_PER_FRAME = TILE_SIZE / 3;
+const RUN_FRAME_COUNT = 6;
+// springcykeln har två steg, ett steg per ruta
+const PIXELS_PER_FRAME = (TILE_SIZE * 2) / RUN_FRAME_COUNT;
 
 const IDLE_SHEET = require("@assets/sprites/player-idle.png");
 const IDLE_FRAME_COUNT = 4;
 const IDLE_FRAME_MS = 200;
-const IDLE_SHEET_WIDTH = FRAME_SIZE * IDLE_FRAME_COUNT;
-const IDLE_SHEET_HEIGHT = FRAME_SIZE * 6;
 
 type Facing = "down" | "up" | "left" | "right";
 
@@ -60,14 +64,19 @@ const facingRow = (facing: Facing) => {
   return facing === "down" ? ROW_DOWN : facing === "up" ? ROW_UP : ROW_SIDE;
 };
 
-// flyttar ett sheet så att rätt ruta hamnar i spelarvyns urklipp
-const frameTransform = (frame: number, row: number) => {
+// rutan ur ett sheet. Skia läser bara pixlar inuti rutan, så kanten
+// mot nästa ruta syns inte ens när kartan är inzoomad
+const frameRect = (frame: number, row: number) => {
   "worklet";
   return [
-    { translateX: -frame * FRAME_SIZE },
-    { translateY: -row * FRAME_SIZE },
+    Skia.XYWHRect(frame * FRAME_SIZE, row * FRAME_SIZE, FRAME_SIZE, FRAME_SIZE),
   ];
 };
+
+// spelarens ruta ritas i origo, Group-transformen flyttar den
+const PLAYER_TRANSFORMS = [Skia.RSXform(1, 0, 0, 0)];
+
+const TARGET_BORDER = 2;
 
 const MAP_PIXEL_WIDTH = MAP_WIDTH * TILE_SIZE;
 const MAP_PIXEL_HEIGHT = MAP_HEIGHT * TILE_SIZE;
@@ -95,39 +104,145 @@ const clampOffset = (offset: number, view: number, content: number) => {
 // pixelgrafiken ska förstoras utan utsmetning
 const PIXEL_SAMPLING = { filter: FilterMode.Nearest, mipmap: MipmapMode.None };
 
-// alla tiles i alla lager, i samma ordning som i Tiled. Varje tile är en
-// bit av tileset-bilden (sprite) och en position på kartan (transform)
-const buildTiles = () => {
-  const sprites = [];
-  const transforms = [];
-  const tileScale = TILE_SIZE / WORLD.tileWidth;
+// tiles ur samma bild som ritas i ett anrop. Varje tile är en bit av
+// bilden (sprite) och en position på kartan (transform)
+type TileBatch = {
+  image: string;
+  sprites: SkRect[];
+  transforms: SkRSXform[];
+};
 
-  for (const layer of WORLD.layers) {
-    for (let i = 0; i < layer.length; i++) {
-      const index = layer[i];
-      if (index < 0) continue;
+// kartpixlar i Tiled → pixlar på skärmen
+const MAP_SCALE = TILE_SIZE / WORLD.tileSize;
 
-      sprites.push(
-        Skia.XYWHRect(
-          (index % WORLD.columns) * WORLD.tileWidth,
-          Math.floor(index / WORLD.columns) * WORLD.tileHeight,
-          WORLD.tileWidth,
-          WORLD.tileHeight,
-        ),
-      );
-      transforms.push(
-        Skia.RSXform(
-          tileScale,
-          0,
-          (i % MAP_WIDTH) * TILE_SIZE,
-          Math.floor(i / MAP_WIDTH) * TILE_SIZE,
-        ),
-      );
+// lägger tiles i batcher per bild. Med keepOrder blir det en ny batch
+// varje gång bilden byts, så att ordningen behålls även mellan bilder
+// (behövs för djupsorterade objekt som överlappar varandra)
+const batchTiles = (tiles: PlacedTile[], keepOrder = false): TileBatch[] => {
+  const batches: TileBatch[] = [];
+  const byImage = new Map<string, TileBatch>();
+
+  for (const { tileset, tile, px, py, width } of tiles) {
+    const sprite = tileSprite(WORLD.tilesets[tileset], tile);
+
+    let batch = keepOrder ? batches.at(-1) : byImage.get(sprite.image);
+    if (!batch || batch.image !== sprite.image) {
+      batch = { image: sprite.image, sprites: [], transforms: [] };
+      batches.push(batch);
+      byImage.set(sprite.image, batch);
     }
+
+    // ett objekt kan vara skalat i Tiled, men Atlas skalar lika i båda
+    // led, så bredden får bestämma
+    const scale = (width / sprite.width) * MAP_SCALE;
+
+    batch.sprites.push(
+      Skia.XYWHRect(sprite.x, sprite.y, sprite.width, sprite.height),
+    );
+    // förankrad i nedre vänstra hörnet, som i Tiled. Höjden räknas från
+    // bilden, så att ett objekt som skalats olika i höjd och bredd ändå
+    // står på sin fot
+    batch.transforms.push(
+      Skia.RSXform(
+        scale,
+        0,
+        px * MAP_SCALE,
+        py * MAP_SCALE - sprite.height * scale,
+      ),
+    );
   }
 
-  return { sprites, transforms };
+  return batches;
 };
+
+// alla tile-lager, i samma ordning som i Tiled. Tiles större än kartans
+// rutor ritas uppåt från sin ruta, precis som i Tiled
+const buildTiles = () =>
+  WORLD.layers.flatMap((layer) =>
+    batchTiles(
+      layer.flatMap((ref, i) => {
+        if (!ref) return [];
+        const sprite = tileSprite(WORLD.tilesets[ref.tileset], ref.tile);
+        return [
+          {
+            ...ref,
+            px: (i % MAP_WIDTH) * WORLD.tileSize,
+            py: (Math.floor(i / MAP_WIDTH) + 1) * WORLD.tileSize,
+            width: sprite.width,
+            height: sprite.height,
+          },
+        ];
+      }),
+    ),
+  );
+
+// alla bilder som kartan använder, både vanliga tilesets och tiles i
+// collection-tilesets
+const IMAGE_NAMES = [
+  ...new Set(
+    WORLD.tilesets.flatMap((tileset) => [
+      ...(tileset.image ? [tileset.image] : []),
+      ...Object.values(tileset.sprites).map((sprite) => sprite.image),
+    ]),
+  ),
+];
+
+// laddar alla bilder en gång, så att en batch kan byta bild utan att
+// bilden laddas om
+const useTilesetImages = () => {
+  const [images, setImages] = useState<Record<string, SkImage | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all(
+      IMAGE_NAMES.map(async (name) => {
+        const source = getTilesetImage(name);
+        if (!source) return [name, null] as const;
+
+        const { uri } = RNImage.resolveAssetSource(source);
+        const data = await Skia.Data.fromURI(uri);
+        return [name, Skia.Image.MakeImageFromEncoded(data)] as const;
+      }),
+    ).then((loaded) => {
+      if (!cancelled) setImages(Object.fromEntries(loaded));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return images;
+};
+
+// en batch ritas med ett enda anrop i Skia, i stället för en vy per tile,
+// vilket både laddar snabbare och tar mycket mindre minne
+const TileAtlas = ({
+  batch,
+  images,
+}: {
+  batch: TileBatch;
+  images: Record<string, SkImage | null>;
+}) => {
+  const image = images[batch.image];
+  if (!image) return null;
+
+  return (
+    <Atlas
+      image={image}
+      sprites={batch.sprites}
+      transforms={batch.transforms}
+      sampling={PIXEL_SAMPLING}
+      antiAlias={false}
+    />
+  );
+};
+
+// objekt sorterade uppifrån och ner, så att det som står längre ner
+// ritas framför det som står bakom
+const sortByDepth = (objects: MapObject[]) =>
+  [...objects].sort((a, b) => a.y - b.y || a.x - b.x);
 
 type TileMapProps = {
   // spelarens position i pixlar, animeras av usePlayerWalk
@@ -135,6 +250,8 @@ type TileMapProps = {
   playerY: SharedValue<number>;
   walking: SharedValue<boolean>;
   target: Point | null;
+  // id för resursobjekt som är uttömda just nu
+  depleted: Set<number>;
   onTileTap: (tile: Point) => void;
 };
 
@@ -143,6 +260,7 @@ export const TileMap = ({
   playerY,
   walking,
   target,
+  depleted,
   onTileTap,
 }: TileMapProps) => {
   const viewWidth = useSharedValue(0);
@@ -153,10 +271,57 @@ export const TileMap = ({
 
   const centered = useRef(false);
 
-  // hela kartan ritas med ett enda anrop i Skia, i stället för en vy per
-  // tile, vilket både laddar snabbare och tar mycket mindre minne
-  const tileset = useImage(TILESET_IMAGE);
+  const images = useTilesetImages();
   const tiles = useMemo(() => buildTiles(), []);
+
+  // raden spelaren står på. Skickas till JS bara när raden byts, så att
+  // objekten kan delas upp i de som står bakom och framför spelaren
+  const [playerRow, setPlayerRow] = useState(() =>
+    Math.round(playerY.get() / TILE_SIZE),
+  );
+
+  useAnimatedReaction(
+    () => Math.round(playerY.get() / TILE_SIZE),
+    (row, previous) => {
+      if (row !== previous) scheduleOnRN(setPlayerRow, row);
+    },
+  );
+
+  // uttömda objekt ritas inte förrän de växer tillbaka
+  const visibleObjects = useMemo(
+    () =>
+      sortByDepth([
+        ...WORLD.props,
+        ...RESOURCE_NODES.filter((node) => !depleted.has(node.id)),
+      ]),
+    [depleted],
+  );
+
+  // golv ritas under spelaren och alla andra objekt, oavsett rad
+  const floors = useMemo(
+    () =>
+      batchTiles(
+        visibleObjects.filter((o) => o.floor),
+        true,
+      ),
+    [visibleObjects],
+  );
+
+  // objekt vars fot står under spelarens rad ritas över spelaren, resten under
+  const objects = useMemo(() => {
+    const visible = visibleObjects.filter((o) => !o.floor);
+
+    return {
+      behind: batchTiles(
+        visible.filter((o) => o.y <= playerRow),
+        true,
+      ),
+      front: batchTiles(
+        visible.filter((o) => o.y > playerRow),
+        true,
+      ),
+    };
+  }, [visibleObjects, playerRow]);
 
   const handleLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -239,32 +404,17 @@ export const TileMap = ({
     { scale: scale.get() },
   ]);
 
-  const mapStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: offsetX.get() },
-      { translateY: offsetY.get() },
-      { scale: scale.get() },
-    ],
-  }));
-
   const facing = useSharedValue<Facing>("down");
   // sträckan spelaren gått, styr vilken ruta i springcykeln som visas
   const distance = useSharedValue(0);
-  // räknar upp idle-rutorna i en loop som går så länge kartan visas
-  const idleClock = useSharedValue(0);
+  // idle-rutan räknas fram från tiden varje bildruta, så länge kartan visas
+  const idleFrame = useSharedValue(0);
 
-  useEffect(() => {
-    idleClock.set(
-      withRepeat(
-        withTiming(IDLE_FRAME_COUNT, {
-          duration: IDLE_FRAME_COUNT * IDLE_FRAME_MS,
-          easing: Easing.linear,
-        }),
-        -1,
-      ),
-    );
-    return () => cancelAnimation(idleClock);
-  }, [idleClock]);
+  useFrameCallback(({ timeSinceFirstFrame }) => {
+    const frame =
+      Math.floor(timeSinceFirstFrame / IDLE_FRAME_MS) % IDLE_FRAME_COUNT;
+    if (frame !== idleFrame.get()) idleFrame.set(frame);
+  });
 
   // riktningen tas från hur positionen ändras, så den följer promenaden
   // exakt utan att usePlayerWalk behöver veta något om spriten
@@ -285,70 +435,87 @@ export const TileMap = ({
     },
   );
 
-  const playerStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: playerX.get() },
-      { translateY: playerY.get() },
-      // vänster är högerraden spegelvänd
-      { scaleX: facing.get() === "left" ? -1 : 1 },
-    ],
-  }));
+  const runSheet = useImage(RUN_SHEET);
+  const idleSheet = useImage(IDLE_SHEET);
 
-  // båda sheeten ligger alltid i spelarvyn och visas växelvis, så att
-  // bilden inte behöver laddas om när spelaren stannar eller börjar gå
-  const runStyle = useAnimatedStyle(() => {
-    const frame =
-      Math.floor(distance.get() / PIXELS_PER_FRAME) % RUN_FRAME_COUNT;
-    return {
-      opacity: walking.get() ? 1 : 0,
-      transform: frameTransform(frame, facingRow(facing.get())),
-    };
-  });
+  // spelaren är större än en ruta och står med fötterna mitt på sin ruta
+  const playerTransform = useDerivedValue(() => [
+    { translateX: playerX.get() + TILE_SIZE / 2 },
+    { translateY: playerY.get() + TILE_SIZE - FRAME_SIZE },
+    // vänster är högerraden spegelvänd, kring spelarens mitt
+    { scaleX: facing.get() === "left" ? -1 : 1 },
+    { translateX: -FRAME_SIZE / 2 },
+  ]);
 
-  const idleStyle = useAnimatedStyle(() => {
-    const frame = Math.floor(idleClock.get()) % IDLE_FRAME_COUNT;
-    return {
-      opacity: walking.get() ? 0 : 1,
-      transform: frameTransform(frame, facingRow(facing.get())),
-    };
-  });
+  const runSprite = useDerivedValue(() =>
+    frameRect(
+      Math.floor(distance.get() / PIXELS_PER_FRAME) % RUN_FRAME_COUNT,
+      facingRow(facing.get()),
+    ),
+  );
+  const idleSprite = useDerivedValue(() =>
+    frameRect(idleFrame.get(), facingRow(facing.get())),
+  );
+
+  // båda sheeten ritas alltid och visas växelvis
+  const runOpacity = useDerivedValue(() => (walking.get() ? 1 : 0));
+  const idleOpacity = useDerivedValue(() => (walking.get() ? 0 : 1));
 
   return (
     <GestureDetector gesture={gesture}>
       <View style={tileStyles.viewport} onLayout={handleLayout}>
         <Canvas style={StyleSheet.absoluteFill}>
           <Group transform={canvasTransform}>
-            <Atlas
-              image={tileset}
-              sprites={tiles.sprites}
-              transforms={tiles.transforms}
-              sampling={PIXEL_SAMPLING}
-              antiAlias={false}
-            />
+            {tiles.map((batch, i) => (
+              <TileAtlas key={i} batch={batch} images={images} />
+            ))}
+            {floors.map((batch, i) => (
+              <TileAtlas key={i} batch={batch} images={images} />
+            ))}
+            {objects.behind.map((batch, i) => (
+              <TileAtlas key={i} batch={batch} images={images} />
+            ))}
+
+            {/* målmarkören, med kanten innanför rutan */}
+            {target && (
+              <Rect
+                x={target.x * TILE_SIZE + TARGET_BORDER / 2}
+                y={target.y * TILE_SIZE + TARGET_BORDER / 2}
+                width={TILE_SIZE - TARGET_BORDER}
+                height={TILE_SIZE - TARGET_BORDER}
+                style="stroke"
+                strokeWidth={TARGET_BORDER}
+                color={colors.accent}
+              />
+            )}
+
+            <Group transform={playerTransform}>
+              <Atlas
+                image={runSheet}
+                sprites={runSprite}
+                transforms={PLAYER_TRANSFORMS}
+                sampling={PIXEL_SAMPLING}
+                opacity={runOpacity}
+              />
+              <Atlas
+                image={idleSheet}
+                sprites={idleSprite}
+                transforms={PLAYER_TRANSFORMS}
+                sampling={PIXEL_SAMPLING}
+                opacity={idleOpacity}
+              />
+            </Group>
           </Group>
         </Canvas>
 
-        {/* spelare och målmarkör ligger ovanpå kartan med samma transform */}
-        <Animated.View style={[tileStyles.map, mapStyle]} pointerEvents="none">
-          {target && (
-            <View
-              style={[
-                tileStyles.tile,
-                tileStyles.target,
-                { left: target.x * TILE_SIZE, top: target.y * TILE_SIZE },
-              ]}
-            />
-          )}
-
-          <Animated.View style={[tileStyles.player, playerStyle]}>
-            <Animated.View style={[tileStyles.runSheet, runStyle]}>
-              <Image source={RUN_SHEET} style={tileStyles.runSheet} />
-            </Animated.View>
-            <Animated.View style={[tileStyles.idleSheet, idleStyle]}>
-              <Image source={IDLE_SHEET} style={tileStyles.idleSheet} />
-            </Animated.View>
-          </Animated.View>
-        </Animated.View>
+        {/* objekt som står framför spelaren ritas ovanpå */}
+        <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Group transform={canvasTransform}>
+            {objects.front.map((batch, i) => (
+              <TileAtlas key={i} batch={batch} images={images} />
+            ))}
+          </Group>
+        </Canvas>
       </View>
     </GestureDetector>
   );
@@ -359,43 +526,5 @@ const tileStyles = StyleSheet.create({
     flex: 1,
     overflow: "hidden",
     backgroundColor: colors.background,
-  },
-
-  map: {
-    width: MAP_PIXEL_WIDTH,
-    height: MAP_PIXEL_HEIGHT,
-    transformOrigin: "top left",
-  },
-
-  tile: {
-    position: "absolute",
-    width: TILE_SIZE,
-    height: TILE_SIZE,
-  },
-
-  target: {
-    borderWidth: 2,
-    borderColor: colors.accent,
-  },
-
-  player: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: FRAME_SIZE,
-    height: FRAME_SIZE,
-    overflow: "hidden",
-  },
-
-  runSheet: {
-    position: "absolute",
-    width: RUN_SHEET_WIDTH,
-    height: RUN_SHEET_HEIGHT,
-  },
-
-  idleSheet: {
-    position: "absolute",
-    width: IDLE_SHEET_WIDTH,
-    height: IDLE_SHEET_HEIGHT,
   },
 });

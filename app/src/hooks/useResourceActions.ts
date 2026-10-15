@@ -1,28 +1,31 @@
-import { Recipe } from "@/components/actionCard";
+import { GATHER_RECIPES } from "@/data/gathering";
+import { ResourceNode } from "@/map/tilemap";
 import * as Haptics from "expo-haptics";
 import { useSetAtom } from "jotai";
 import { Alert } from "react-native";
 
-import { gatherAtom } from "@/state/resources";
+import { gatherNodeAtom } from "@/state/nodes";
 
 export const useResourceActions = () => {
-  const gather = useSetAtom(gatherAtom);
+  const gatherNode = useSetAtom(gatherNodeAtom);
 
-  const handleGather = (recipe: Recipe, times: number = 1) => {
-    const result = gather(recipe, times);
+  // returnerar om insamlingen lyckades, så att modalen kan stängas
+  const handleGatherNode = (node: ResourceNode) => {
+    const result = gatherNode(node);
 
     if (!result.ok) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert("Could not gather", result.reason);
-      return;
+      return false;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       "success!",
-      `-${result.cost} steps. \n+${result.gain} ${recipe.label} \n+${result.xp} xp`,
+      `-${result.cost} steps. \n+${result.gain} ${GATHER_RECIPES[node.resource].label}`,
     );
+    return true;
   };
 
-  return { handleGather };
+  return { handleGatherNode };
 };

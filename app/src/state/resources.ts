@@ -1,4 +1,4 @@
-import { Recipe } from "@/components/actionCard";
+import type { GatherRecipe } from "@/data/gathering";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { atom } from "jotai";
 import { addXpAtom } from "./player";
@@ -11,30 +11,31 @@ export const resourcesAtom = atom<Record<string, number>>({
   stone: 0,
 });
 
-export const GATHER_STEP_COST = 10;
-export const GATHER_GAIN = 2;
-
 export const gatherAtom = atom(
   null,
-  (get, set, recipe: Recipe, times: number = 1): GatherResult => {
-    const totalCost = GATHER_STEP_COST * times;
-    const result = set(withdrawAtom, totalCost);
+  (get, set, recipe: GatherRecipe): GatherResult => {
+    const result = set(withdrawAtom, recipe.stepCost);
 
     if (!result.ok) {
       return { ok: false, reason: result.reason };
     }
 
-    const key = recipe.resourceKey ?? recipe.label;
-    const totalGain = GATHER_GAIN * times;
-
     const current = get(resourcesAtom);
-    const next = { ...current, [key]: (current[key] ?? 0) + totalGain };
+    const next = {
+      ...current,
+      [recipe.resourceKey]: (current[recipe.resourceKey] ?? 0) + recipe.gain,
+    };
 
     set(resourcesAtom, next);
     AsyncStorage.setItem(RESOURCES_KEY, JSON.stringify(next));
-    set(addXpAtom, recipe.xpYield * times);
+    set(addXpAtom, recipe.xpYield);
 
-    return { ok: true, cost: totalCost, gain: totalGain, xp: recipe.xpYield };
+    return {
+      ok: true,
+      cost: recipe.stepCost,
+      gain: recipe.gain,
+      xp: recipe.xpYield,
+    };
   },
 );
 

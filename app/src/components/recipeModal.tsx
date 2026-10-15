@@ -1,15 +1,10 @@
 import { getRecipeIcon, Recipe } from "@/components/actionCard";
 import { RESOURCE_ICONS } from "@/state/resourceIcons";
-import {
-  GATHER_GAIN,
-  GATHER_STEP_COST,
-  resourcesAtom,
-} from "@/state/resources";
-import { bankedStepsAtom } from "@/state/stepbank";
+import { resourcesAtom } from "@/state/resources";
 import { colors, styles } from "@/styles/main";
 import { Image, ImageSource } from "expo-image";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -21,19 +16,20 @@ import {
   View,
 } from "react-native";
 
-type RecipeModalProps = {
-  recipe: Recipe | null;
-  onAction: (recipe: Recipe, times: number) => void;
+type ModalBackdropProps = {
+  visible: boolean;
   onClose: () => void;
+  children: ReactNode;
 };
 
-export const RecipeModal = ({
-  recipe,
-  onAction,
+// mörk bakgrund som stänger modalen vid tryck, delas med GatherModal
+export const ModalBackdrop = ({
+  visible,
   onClose,
-}: RecipeModalProps) => (
+  children,
+}: ModalBackdropProps) => (
   <Modal
-    visible={recipe !== null}
+    visible={visible}
     transparent
     animationType="fade"
     onRequestClose={onClose}
@@ -51,17 +47,33 @@ export const RecipeModal = ({
         }}
         onPress={onClose}
       >
-        {recipe && (
-          <RecipeContent
-            key={recipe.label}
-            recipe={recipe}
-            onAction={onAction}
-            onClose={onClose}
-          />
-        )}
+        {children}
       </Pressable>
     </KeyboardAvoidingView>
   </Modal>
+);
+
+type RecipeModalProps = {
+  recipe: Recipe | null;
+  onAction: (recipe: Recipe, times: number) => void;
+  onClose: () => void;
+};
+
+export const RecipeModal = ({
+  recipe,
+  onAction,
+  onClose,
+}: RecipeModalProps) => (
+  <ModalBackdrop visible={recipe !== null} onClose={onClose}>
+    {recipe && (
+      <RecipeContent
+        key={recipe.label}
+        recipe={recipe}
+        onAction={onAction}
+        onClose={onClose}
+      />
+    )}
+  </ModalBackdrop>
 );
 
 type RecipeContentProps = {
@@ -73,10 +85,8 @@ type RecipeContentProps = {
 const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
   const [input, setInput] = useState("1");
   const resources = useAtomValue(resourcesAtom);
-  const bankedSteps = useAtomValue(bankedStepsAtom);
 
   const icon = getRecipeIcon(recipe);
-  const isGathering = recipe.resourceKey !== undefined;
 
   const parsed = parseInt(input, 10);
   const count = isNaN(parsed) ? 0 : parsed;
@@ -121,13 +131,6 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
 
       <View style={{ width: "100%", gap: 8 }}>
         <Text style={styles.text}>cost</Text>
-        {isGathering && (
-          <CostRow
-            label="steps"
-            have={bankedSteps}
-            need={GATHER_STEP_COST * count}
-          />
-        )}
         {Object.entries(recipe.cost ?? {}).map(([key, amount]) => (
           <CostRow
             key={key}
@@ -141,11 +144,6 @@ const RecipeContent = ({ recipe, onAction, onClose }: RecipeContentProps) => {
 
       <View style={{ width: "100%", gap: 8 }}>
         <Text style={styles.text}>yield</Text>
-        {isGathering && (
-          <Text style={[styles.text, { color: colors.textMuted }]}>
-            {recipe.label} +{GATHER_GAIN * count}
-          </Text>
-        )}
         <Text style={[styles.text, { color: colors.xp }]}>
           xp +{recipe.xpYield * count}
         </Text>
@@ -215,7 +213,7 @@ type CostRowProps = {
   need: number;
 };
 
-const CostRow = ({ label, icon, have, need }: CostRowProps) => (
+export const CostRow = ({ label, icon, have, need }: CostRowProps) => (
   <View style={[styles.row, { gap: 8 }]}>
     {icon && (
       <Image

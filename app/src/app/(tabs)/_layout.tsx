@@ -16,19 +16,14 @@ type Tab = {
 const TABS: Tab[] = [
   {
     name: "index",
-    title: "Home",
-    icon: require("@assets/icons/home.png"),
+    title: "Map",
+    icon: require("@assets/icons/player.png"),
   },
   {
     name: "crafting",
     title: "Crafting",
     icon: require("@assets/icons/anvil.png"),
     offsetX: -6,
-  },
-  {
-    name: "map",
-    title: "Map",
-    icon: require("@assets/icons/player.png"),
   },
   {
     name: "inventory",
