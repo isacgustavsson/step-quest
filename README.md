@@ -10,9 +10,9 @@ Appen är för den som vill ha lite extra motivation att röra på sig: ju mer d
 
 - **Map** (första fliken): en tilemap (ritad i Tiled) som går att panorera och pinch-zooma. Tryck på en ruta så går spelaren dit runt hinder som vatten, sten och träd. Positionen sparas. Tryck på ett resursobjekt (träd, buske, sten …) så går spelaren fram till det och en modal visar vad insamlingen kostar i steg och hur många resurser den ger. Varje insamling ger en fast mängd, och objektet försvinner sedan från kartan tills det växer tillbaka.
 - **Crafting**: gör föremål av resurserna.
-- **Inventory**: resurser och craftade föremål i en gemensam grid med fasta rutor. Håll in en sak och dra den till en annan ruta: på en tom ruta flyttas den dit, på en annan sak byter de plats. Placeringen sparas. Tryck på en sak för att öppna detaljskärmen.
+- **Inventory**: resurser och craftade föremål i en gemensam grid med fasta rutor. Håll in en sak och dra den till en annan ruta: på en tom ruta flyttas den dit, på en annan sak byter de plats. Placeringen sparas. Tryck på en sak för att öppna en modal med info om den och "drop", som slänger allt av saken efter en bekräftelse.
 - **Settings**: lägg till steg manuellt (för test i simulator) och nollställ framsteg.
-- **Details** (`details/[id]`): visar ikon, typ och antal för en resurs eller ett föremål.
+- **Details** (`details/[id]`): öppnas som en modal över inventoryt (Expo Router, `presentation: "transparentModal"`). Visar ikon, namn, typ, antal och beskrivning för en resurs eller ett föremål, och har "drop".
 
 I Crafting trycker du på ett recept för att öppna en modal med ikon, beskrivning, kostnad och XP. Där väljer du också hur många gånger du vill samla eller crafta.
 

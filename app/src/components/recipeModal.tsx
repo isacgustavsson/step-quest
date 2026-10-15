@@ -17,13 +17,34 @@ import {
   View,
 } from "react-native";
 
+type BackdropProps = {
+  onPress: () => void;
+  children: ReactNode;
+};
+
+// mörk bakgrund som stänger vid tryck, med innehållet i mitten. Används
+// både i Modal och av modal-routen details/[id]
+export const Backdrop = ({ onPress, children }: BackdropProps) => (
+  <Pressable
+    style={{
+      flex: 1,
+      justifyContent: "center",
+      padding: 24,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+    }}
+    onPress={onPress}
+  >
+    {children}
+  </Pressable>
+);
+
 type ModalBackdropProps = {
   visible: boolean;
   onClose: () => void;
   children: ReactNode;
 };
 
-// mörk bakgrund som stänger modalen vid tryck, delas med GatherModal
+// en Modal med Backdrop, delas med GatherModal
 export const ModalBackdrop = ({
   visible,
   onClose,
@@ -39,17 +60,7 @@ export const ModalBackdrop = ({
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <Pressable
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          padding: 24,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-        }}
-        onPress={onClose}
-      >
-        {children}
-      </Pressable>
+      <Backdrop onPress={onClose}>{children}</Backdrop>
     </KeyboardAvoidingView>
   </Modal>
 );

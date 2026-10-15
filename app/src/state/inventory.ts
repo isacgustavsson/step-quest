@@ -56,6 +56,17 @@ export const inventoryGridAtom = atom((get): InventorySlot[] => {
   });
 });
 
+// slänger allt av en resurs eller ett föremål. Rutan blir tom av sig
+// själv, eftersom layouten bara visar det spelaren äger
+export const dropEntryAtom = atom(null, (get, set, id: string) => {
+  const kind = getEntry(id)?.kind;
+  if (!kind) return;
+
+  const target = kind === "resource" ? resourcesAtom : inventoryAtom;
+  const { [id]: _dropped, ...rest } = get(target);
+  set(target, rest);
+});
+
 // flyttar det som ligger på from till to. Ligger något på to byter de plats
 export const moveSlotAtom = atom(null, (get, set, from: number, to: number) => {
   const slots = [...get(layoutAtom)];

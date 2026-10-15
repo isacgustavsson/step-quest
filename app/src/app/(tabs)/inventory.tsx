@@ -17,6 +17,7 @@ export default function Inventory() {
 
   const isEmpty = slots.every((slot) => slot === null);
 
+  // info och drop finns i modal-routen details/[id]
   const openDetails = useCallback(
     (id: string) => router.push({ pathname: "/details/[id]", params: { id } }),
     [router],

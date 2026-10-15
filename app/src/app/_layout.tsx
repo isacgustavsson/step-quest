@@ -1,4 +1,3 @@
-import { HeaderComponent } from "@/components/header";
 import { useSaveGame } from "@/hooks/useSaveGame";
 import { useStepTracking } from "@/hooks/useStepTracking";
 import { colors } from "@/styles/main";
@@ -33,9 +32,14 @@ export default function RootLayout() {
       <ThemeProvider value={theme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          {/* öppnas som en modal över inventoryt */}
           <Stack.Screen
             name="details/[id]"
-            options={{ header: () => <HeaderComponent /> }}
+            options={{
+              presentation: "transparentModal",
+              animation: "fade",
+              headerShown: false,
+            }}
           />
         </Stack>
       </ThemeProvider>
