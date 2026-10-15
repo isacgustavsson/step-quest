@@ -33,7 +33,7 @@ Stegräknaren fungerar bara på en riktig telefon. I simulatorn kan du lägga ti
 
 ## Rita kartor
 
-Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i `app/assets/maps/world-cainos.json`. Appen läser filen direkt, så det räcker att spara i Tiled. Alla kartor och deras id:n står i `MAP_SOURCES` i `app/src/map/maps.ts`; den äldre kartan med Kenney-grafik ligger kvar i `world.json` men är inte registrerad.
+Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i `app/assets/maps/world-cainos.json`. Appen läser filen direkt, så det räcker att spara i Tiled. Alla kartor och deras id:n står i `MAP_SOURCES` i `app/src/map/maps.ts`.
 
 **Flera kartor.** En ny karta läggs till i `MAP_SOURCES` med ett eget id. Id:t sparas i spelarens position och i återväxten för resursobjekt, så det får inte ändras när kartan väl används. Spelaren byter karta med `enterMapAtom` i `app/src/state/map.ts`. Objekt-id:n i Tiled behöver bara vara unika inom en karta.
 
@@ -45,7 +45,7 @@ Kartan ritas i [Tiled](https://www.mapeditor.org) (gratis) och sparas som JSON i
 6. Höga eller breda saker som inte går att samla, t.ex. stora träd och hus, läggs som tile-objekt i objektlagret `props`. Deras fot är alltid ett hinder.
 7. Spara som JSON (`.json`, inte `.tmj`, eftersom Metro bara kan läsa in `.json`). Tilesetet måste vara inbäddat i kartan (_Embed tileset_).
 
-Ny karta: Orthogonal, tile layer format CSV, tile size 16×16, och inbäddade tilesets utan spacing/margin. Cainos-grafiken är ritad i 32 px, så gräs-tilesetet används som 16×16 (en Cainos-ruta blir 2×2 rutor) och objekten är flera rutor stora. Spelaren går en 16-ruta i taget. Appen ritar grafiken i 1:1, så den äldre Kenney-kartan blir hälften så stor om du byter tillbaka till den.
+Ny karta: Orthogonal, tile layer format CSV, tile size 16×16, och inbäddade tilesets utan spacing/margin. Cainos-grafiken är ritad i 32 px, så gräs-tilesetet används som 16×16 (en Cainos-ruta blir 2×2 rutor) och objekten är flera rutor stora. Spelaren går en 16-ruta i taget, och appen ritar grafiken i 1:1.
 
 **Stora objekt och djup.** Objekt i `resources` och `props` får vara större än en ruta. Bara foten, den nedersta raden rutor som objektet täcker, är ett hinder; resten av bilden går att gå bakom. Objekten ritas uppifrån och ner, och spelaren hamnar bakom ett objekt vars fot står nedanför spelaren. Tile-lagren djupsorteras inte, så allt som spelaren ska kunna gå bakom läggs som objekt. Objekt som spelaren ska gå ovanpå, t.ex. plattformen i mitten av kartan, får en bool-property `floor = true` på tilen eller objektet. De ritas alltid under spelaren och andra objekt, och deras fot är inget hinder. Foten centreras under bilden och är lika bred som bilden i hela rutor, om inte tilen eller objektet har en int-property `footWidth` (träden har `footWidth = 1`, en 16-ruta under stammen). Skala inte objekt olika mycket på bredden och höjden i Tiled; appen skalar alltid lika i båda led efter bredden. Slå på _Snap to Grid_ så att objekten hamnar på rutor.
 
@@ -61,7 +61,7 @@ Hela spelet sparas under en nyckel i AsyncStorage, med ett versionsnummer. Ändr
 
 På iOS hämtas steg som togs medan appen var stängd när appen öppnas, upp till en vecka bakåt. Android har ingen sådan historik, så där räknas bara steg medan appen är öppen.
 
-Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) av Cainos (`cainos-*.png`). Den äldre kartan använder [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0, `tileset.png`). Både Tiled och appen använder samma bilder; appen ritar pixlarna utan utsmetning.
+Grafiken är [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) av Cainos (`cainos-*.png`). `tileset.png` är [Tiny Town](https://kenney.nl/assets/tiny-town) av Kenney (CC0), från den första kartan, och används inte av någon karta just nu. Både Tiled och appen använder samma bilder; appen ritar pixlarna utan utsmetning.
 
 ## Använda RN-komponenter
 
