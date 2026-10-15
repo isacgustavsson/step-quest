@@ -13,7 +13,7 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-const STEP_DURATION = 140;
+const STEP_DURATION = 280;
 
 // hela promenaden körs som en animation på UI-tråden, så att den inte
 // hackar när JS-tråden är upptagen. Positionen sparas först vid ankomst.
@@ -24,6 +24,8 @@ export const usePlayerWalk = () => {
 
   const playerX = useSharedValue(position.x * TILE_SIZE);
   const playerY = useSharedValue(position.y * TILE_SIZE);
+  // styr om spelarens springanimation spelas
+  const walking = useSharedValue(false);
   // ökas för varje ny promenad, så att en gammal ankomst ignoreras
   const walkId = useRef(0);
 
@@ -32,9 +34,10 @@ export const usePlayerWalk = () => {
   useEffect(() => {
     cancelAnimation(playerX);
     cancelAnimation(playerY);
+    walking.set(false);
     playerX.set(position.x * TILE_SIZE);
     playerY.set(position.y * TILE_SIZE);
-  }, [position, playerX, playerY]);
+  }, [position, playerX, playerY, walking]);
 
   const arrive = useCallback(
     (destination: Point, id: number) => {
@@ -87,6 +90,7 @@ export const usePlayerWalk = () => {
           (finished) => {
             "worklet";
             if (finished && i === segments.length - 1) {
+              walking.set(false);
               scheduleOnRN(arrive, destination, id);
             }
           },
@@ -96,11 +100,12 @@ export const usePlayerWalk = () => {
         withTiming(tile.y * TILE_SIZE, { duration, easing: Easing.linear }),
       );
 
+      walking.set(true);
       playerX.set(withSequence(...xs));
       playerY.set(withSequence(...ys));
     },
-    [playerX, playerY, arrive],
+    [playerX, playerY, walking, arrive],
   );
 
-  return { playerX, playerY, target, walkTo };
+  return { playerX, playerY, walking, target, walkTo };
 };
