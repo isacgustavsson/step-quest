@@ -10,7 +10,7 @@ Appen är för den som vill ha lite extra motivation att röra på sig: ju mer d
 
 - **Map** (första fliken): en tilemap (ritad i Tiled) som går att panorera och pinch-zooma. Tryck på en ruta så går spelaren dit runt hinder som vatten, sten och träd. Positionen sparas. Tryck på ett resursobjekt (träd, buske, sten …) så går spelaren fram till det och en modal visar vad insamlingen kostar i steg och hur många resurser den ger. Varje insamling ger en fast mängd, och objektet försvinner sedan från kartan tills det växer tillbaka.
 - **Crafting**: gör föremål av resurserna.
-- **Inventory**: visar resurser och craftade föremål. Tryck på ett föremål för att öppna detaljskärmen.
+- **Inventory**: resurser och craftade föremål i en gemensam grid med fasta rutor. Håll in en sak och dra den till en annan ruta: på en tom ruta flyttas den dit, på en annan sak byter de plats. Placeringen sparas. Tryck på en sak för att öppna detaljskärmen.
 - **Settings**: lägg till steg manuellt (för test i simulator) och nollställ framsteg.
 - **Details** (`details/[id]`): visar ikon, typ och antal för en resurs eller ett föremål.
 
@@ -94,8 +94,8 @@ Navigering sker med **Expo Router** (filbaserad routing i `src/app/`).
 | ------------------------------------------- | --------------------------------------------------------------------- |
 | `@react-native-async-storage/async-storage` | Sparar hela spelet (stegbank, resurser, inventory, XP, position, återväxt) i en versionerad sparfil. |
 | `jotai`                                     | Global state (atoms) för stegbank, resurser, crafting och spelarnivå. |
-| `react-native-gesture-handler`              | Pan-, pinch- och tryckgester på kartan.                               |
-| `react-native-reanimated`                   | Animerar kartans zoom/förflyttning och spelarens gång på UI-tråden.   |
+| `react-native-gesture-handler`              | Pan-, pinch- och tryckgester på kartan, och drag and drop i inventoryt. |
+| `react-native-reanimated`                   | Animerar kartans zoom/förflyttning, spelarens gång och sakerna som dras i inventoryt, på UI-tråden. |
 | `@shopify/react-native-skia`                | Ritar hela kartan i en canvas med tiles från tilesetet.               |
 
 ## Uppfyllda krav

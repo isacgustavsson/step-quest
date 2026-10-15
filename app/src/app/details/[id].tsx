@@ -1,6 +1,5 @@
 // app/details/[id].tsx
-import { ITEMS } from "@/data/items";
-import { RESOURCES } from "@/data/resources";
+import { getEntry } from "@/data/entries";
 import { inventoryAtom } from "@/state/crafting";
 import { resourcesAtom } from "@/state/resources";
 import { colors, styles } from "@/styles/main";
@@ -17,12 +16,9 @@ export default function ItemDetail() {
   const inventory = useAtomValue(inventoryAtom);
   const resources = useAtomValue(resourcesAtom);
 
-  // id:n är unika för både resurser och föremål
-  const resource = id ? RESOURCES[id] : undefined;
-  const item = id ? ITEMS[id] : undefined;
-  const entry = resource ?? item;
-
-  const amount = (resource ? resources[id] : inventory[id]) ?? 0;
+  const entry = id ? getEntry(id) : undefined;
+  const isResource = entry?.kind === "resource";
+  const amount = (isResource ? resources[id] : inventory[id]) ?? 0;
 
   return (
     <View
@@ -52,7 +48,7 @@ export default function ItemDetail() {
         {entry?.label ?? "unknown"}
       </Text>
       <Text style={[styles.text, { fontSize: 24, color: colors.textMuted }]}>
-        {resource ? "Resource" : "Crafted item"} · x{amount}
+        {isResource ? "Resource" : "Crafted item"} · x{amount}
       </Text>
     </View>
   );
